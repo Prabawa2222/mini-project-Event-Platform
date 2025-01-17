@@ -43,3 +43,8 @@ next-env.d.ts
 
 #prisma
 backend/prisma/migrations
+
+#Vscode
+/.vscode/
+
+.sakila.session.sql
