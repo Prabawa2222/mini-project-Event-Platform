@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  password     String
+  role         UserRole      @default(CUSTOMER)
+  referralCode String        @unique
+  referredBy   String?
+  points       Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  coupons      Coupon[]
+  events       Event[]       @relation("EventOrganizers")
+  transactions Transaction[]
+  referrer     User?         @relation("UserReferrals", fields: [referredBy], references: [referralCode])
+  referrals    User[]        @relation("UserReferrals")
+}
+
+model Coupon {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  discount  Int
+  expiresAt DateTime
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Event {
+  id             Int           @id @default(autoincrement())
+  name           String
+  description    String
+  price          Int
+  startDate      DateTime
+  endDate        DateTime
+  availableSeats Int
+  organizerId    Int
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organizer      User          @relation("EventOrganizers", fields: [organizerId], references: [id])
+  promotions     Promotion[]
+  transactions   Transaction[]
+}
+
+model Promotion {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  discount  Int
+  startDate DateTime
+  endDate   DateTime
+  event     Event    @relation(fields: [eventId], references: [id])
+}
+
+model Transaction {
+  id           Int               @id @default(autoincrement())
+  userId       Int
+  eventId      Int
+  status       TransactionStatus
+  paymentProof String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  event        Event             @relation(fields: [eventId], references: [id])
+  user         User              @relation(fields: [userId], references: [id])
+}
+
+enum UserRole {
+  CUSTOMER
+  ORGANIZER
+}
+
+enum TransactionStatus {
+  WAITING_FOR_PAYMENT
+  WAITING_FOR_ADMIN_CONFIRMATION
+  DONE
+  REJECTED
+  EXPIRED
+  CANCELED
+}
