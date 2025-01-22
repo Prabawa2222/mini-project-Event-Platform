@@ -80,4 +80,34 @@ export class UserService {
       points: user.points,
     };
   }
+
+  async login(
+    email: string,
+    password: string
+  ): Promise<{
+    token: string;
+    user: UserResponse;
+  }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user || !(await bycrypt.compare(password, user.password))) {
+      throw new Error("Invalid credentials");
+    }
+
+    const token = this.generateToken(user.id, user.role);
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        referralCode: user.referralCode,
+        points: user.points,
+      },
+    };
+  }
 }

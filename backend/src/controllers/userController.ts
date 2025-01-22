@@ -19,8 +19,18 @@ export class UserController {
       const userData: CreateUserDto = req.body;
       const user = await this.userService.register(userData);
       res.status(201).json(user);
-    } catch (error) {
-      res.status(400).json({ message: error });
+    } catch (error: any) {
+      res.status(401).json({ message: error.message });
+    }
+  };
+
+  login = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email, password } = req.body;
+      const result = await this.userService.login(email, password);
+      res.json(result);
+    } catch (error: any) {
+      res.status(401).json({ message: error.message });
     }
   };
 }
