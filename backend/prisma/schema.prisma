@@ -15,17 +15,17 @@ model User {
   referralCode   String          @unique
   referredBy     String?
   points         Int             @default(0)
-  profilePicture String?
-  name           String
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  name           String
+  profilePicture String?
   coupons        Coupon[]
   events         Event[]         @relation("EventOrganizers")
-  transactions   Transaction[]
+  pointsHistory  PointsHistory[]
   reviews        Review[]
+  transactions   Transaction[]
   referrer       User?           @relation("UserReferrals", fields: [referredBy], references: [referralCode])
   referrals      User[]          @relation("UserReferrals")
-  pointsHistory  PointsHistory[]
 }
 
 model PointsHistory {
@@ -44,10 +44,10 @@ model Coupon {
   discount    Int
   expiresAt   DateTime
   userId      Int
-  type        CouponType
-  isUsed      Boolean      @default(false)
-  usedAt      DateTime?
   createdAt   DateTime     @default(now())
+  isUsed      Boolean      @default(false)
+  type        CouponType
+  usedAt      DateTime?
   user        User         @relation(fields: [userId], references: [id])
   transaction Transaction?
 }
@@ -60,16 +60,16 @@ model Event {
   startDate      DateTime
   endDate        DateTime
   availableSeats Int
-  category       String
-  location       String
   organizerId    Int
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+  category       String
+  location       String
   organizer      User          @relation("EventOrganizers", fields: [organizerId], references: [id])
   promotions     Promotion[]
-  transactions   Transaction[]
   reviews        Review[]
   ticketTypes    TicketType[]
+  transactions   Transaction[]
 }
 
 model TicketType {
@@ -86,12 +86,12 @@ model TicketType {
 model Promotion {
   id           Int           @id @default(autoincrement())
   eventId      Int
-  code         String        @unique
   discount     Int
   startDate    DateTime
   endDate      DateTime
-  maxUses      Int?
+  code         String        @unique
   currentUses  Int           @default(0)
+  maxUses      Int?
   event        Event         @relation(fields: [eventId], references: [id])
   transactions Transaction[]
 }
@@ -100,23 +100,23 @@ model Transaction {
   id            Int               @id @default(autoincrement())
   userId        Int
   eventId       Int
-  ticketTypeId  Int
-  quantity      Int
-  totalPrice    Int
-  pointsUsed    Int               @default(0)
   status        TransactionStatus
   paymentProof  String?
-  expiresAt     DateTime
-  adminActionBy DateTime?
-  couponId      Int?              @unique
-  promotionId   Int?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
-  event         Event             @relation(fields: [eventId], references: [id])
-  user          User              @relation(fields: [userId], references: [id])
-  ticketType    TicketType        @relation(fields: [ticketTypeId], references: [id])
+  adminActionBy DateTime?
+  couponId      Int?              @unique
+  expiresAt     DateTime
+  pointsUsed    Int               @default(0)
+  promotionId   Int?
+  quantity      Int
+  ticketTypeId  Int
+  totalPrice    Int
   coupon        Coupon?           @relation(fields: [couponId], references: [id])
+  event         Event             @relation(fields: [eventId], references: [id])
   promotion     Promotion?        @relation(fields: [promotionId], references: [id])
+  ticketType    TicketType        @relation(fields: [ticketTypeId], references: [id])
+  user          User              @relation(fields: [userId], references: [id])
 }
 
 model Review {
@@ -126,8 +126,8 @@ model Review {
   rating    Int
   comment   String
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
   event     Event    @relation(fields: [eventId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 enum UserRole {

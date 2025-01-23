@@ -25,6 +25,7 @@ export interface UserResponse {
   role: UserRole;
   referralCode: string;
   points: number;
+  profilePicture?: string | null;
 }
 
 export interface CreateEventDto {
@@ -42,4 +43,14 @@ export interface CreateEventDto {
     quantity: number;
     description?: string;
   };
+}
+
+export interface UpdateProfileDto {
+  name?: string;
+  profilePicture?: string;
+}
+
+export interface ChangePasswordDto {
+  oldPassword: string;
+  newPassword: string;
 }

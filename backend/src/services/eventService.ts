@@ -2,14 +2,18 @@ import { CreateEventDto } from "../types";
 import { PrismaClient } from "@prisma/client";
 
 export class EventService {
-  private db = new PrismaClient();
+  private prisma: PrismaClient;
 
-  async create(organizerId: number, eventData: any) {
+  constructor() {
+    this.prisma = new PrismaClient();
+  }
+
+  async createEvent(organizerId: number, eventData: any) {
     const totalSeats = eventData.ticketTypes.reduce(
       (sum: number, ticket: any) => sum + ticket.quantity,
       0
     );
-    return this.db.event.create({
+    return this.prisma.event.create({
       data: {
         name: eventData.name,
         description: eventData.description,
@@ -28,9 +32,9 @@ export class EventService {
     });
   }
 
-  async getById(id: number) {
-    const event = await this.db.event.findUnique({
-      where: { id },
+  async getEventById(eventId: number) {
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
       include: {
         ticketTypes: true,
         organizer: { select: { id: true, name: true } },
@@ -38,5 +42,20 @@ export class EventService {
     });
     if (!event) throw new Error("Event not found");
     return event;
+  }
+
+  async getOrganizerEvents(organizerId: number) {
+    return await this.prisma.event.findMany({
+      include: {
+        ticketTypes: true,
+        transactions: {
+          select: {
+            status: true,
+            totalPrice: true,
+            quantity: true,
+          },
+        },
+      },
+    });
   }
 }

@@ -1,8 +1,13 @@
 import prisma from "../../prisma/client";
 import bycrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { CreateUserDto, UserResponse } from "../types";
-import { PrismaClient, UserRole } from "@prisma/client";
+import {
+  ChangePasswordDto,
+  CreateUserDto,
+  UpdateProfileDto,
+  UserResponse,
+} from "../types";
+import { PrismaClient, UserRole, CouponType, PointsType } from "@prisma/client";
 import crypto from "crypto";
 import { JWT_SECRET } from "../utils/jwt";
 
@@ -17,11 +22,15 @@ export class UserService {
     return crypto.randomBytes(4).toString("hex").toUpperCase();
   }
 
+  private generateDiscountCoupon(): string {
+    return `DISCOUNT-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
+  }
+
   private generateToken(userId: number, role: UserRole): string {
     return jwt.sign({ id: userId, role }, JWT_SECRET!, { expiresIn: "24h" });
   }
 
-  async register(userData: CreateUserDto): Promise<UserResponse> {
+  async registerUser(userData: CreateUserDto): Promise<UserResponse> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: userData.email },
     });
@@ -59,15 +68,27 @@ export class UserService {
       await this.prisma.pointsHistory.create({
         data: {
           userId: referrerUser.id,
-          points: 50,
+          points: 10000,
           type: "REFERRAL",
-          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+          // 3 bulan abisnya
         },
       });
 
       await this.prisma.user.update({
         where: { id: referrerUser.id },
-        data: { points: { increment: 50 } },
+        data: { points: { increment: 10000 } },
+      });
+
+      const couponCode = this.generateDiscountCoupon();
+      await this.prisma.coupon.create({
+        data: {
+          userId: user.id,
+          code: couponCode,
+          discount: 10,
+          expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+          type: CouponType.REFERRAL,
+        },
       });
     }
 
@@ -81,7 +102,7 @@ export class UserService {
     };
   }
 
-  async login(
+  async loginUser(
     email: string,
     password: string
   ): Promise<{
@@ -109,5 +130,69 @@ export class UserService {
         points: user.points,
       },
     };
+  }
+
+  async updateUserProfile(
+    userId: number,
+    data: UpdateProfileDto
+  ): Promise<UserResponse> {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: data.name,
+        profilePicture: data.profilePicture,
+      },
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      referralCode: user.referralCode,
+      points: user.points,
+      profilePicture: user.profilePicture,
+    };
+  }
+
+  async changeUserPassword(
+    userId: number,
+    data: ChangePasswordDto
+  ): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !(await bycrypt.compare(data.oldPassword, user.password))) {
+      throw new Error("Invalid current password");
+    }
+
+    const hashedPassword = await bycrypt.hash(data.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+  }
+
+  async expireCoupons(): Promise<void> {
+    const expiredCoupons = await this.prisma.coupon.updateMany({
+      where: {
+        expiresAt: { lte: new Date() },
+        isUsed: false,
+      },
+      data: { isUsed: true },
+    });
+    console.log(`${expiredCoupons.count} coupons expired.`);
+  }
+
+  async expirePoints(): Promise<void> {
+    const expiredPoints = await this.prisma.pointsHistory.updateMany({
+      where: {
+        expiresAt: { lte: new Date() },
+        type: PointsType.REFERRAL,
+      },
+      data: { type: PointsType.EXPIRED },
+    });
+    console.log(`${expiredPoints.count} points records expired.`);
   }
 }

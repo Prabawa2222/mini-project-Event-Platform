@@ -14,23 +14,66 @@ export class UserController {
     this.userService = new UserService();
   }
 
-  register = async (req: Request, res: Response): Promise<void> => {
+  registeUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const userData: CreateUserDto = req.body;
-      const user = await this.userService.register(userData);
+      const user = await this.userService.registerUser(userData);
       res.status(201).json(user);
     } catch (error: any) {
       res.status(401).json({ message: error.message });
     }
   };
 
-  login = async (req: Request, res: Response): Promise<void> => {
+  loginUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, password } = req.body;
-      const result = await this.userService.login(email, password);
+      const result = await this.userService.loginUser(email, password);
       res.json(result);
     } catch (error: any) {
-      res.status(401).json({ message: error.message });
+      res.status(400).json({ success: false, message: error.message });
+    }
+  };
+
+  updateUserProfile = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = parseInt(req.params.id);
+      await this.userService.updateUserProfile(userId, req.body);
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  };
+
+  changeUserPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = parseInt(req.params.id);
+      await this.userService.changeUserPassword(userId, req.body);
+      res
+        .status(200)
+        .json({ success: true, message: "Password updated successfully" });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  };
+
+  expireCoupons = async (req: Request, res: Response): Promise<void> => {
+    try {
+      await this.userService.expireCoupons();
+      res
+        .status(200)
+        .json({ success: true, message: "Coupons expired successfully" });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  };
+
+  expirePoints = async (req: Request, res: Response): Promise<void> => {
+    try {
+      await this.userService.expirePoints();
+      res
+        .status(200)
+        .json({ success: true, message: "Points expired successfully" });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
     }
   };
 }
