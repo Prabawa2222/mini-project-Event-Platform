@@ -65,6 +65,8 @@ model Event {
   updatedAt      DateTime      @updatedAt
   category       String
   location       String
+  slug           String        @unique
+  deletedAt      DateTime?
   organizer      User          @relation("EventOrganizers", fields: [organizerId], references: [id])
   promotions     Promotion[]
   reviews        Review[]

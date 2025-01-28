@@ -45,6 +45,45 @@ export interface CreateEventDto {
   };
 }
 
+export interface EventPreview {
+  name: string;
+  description: string;
+  price: number;
+  startDate: Date;
+  category: string;
+  location: string;
+}
+
+export interface UpdateEventDTO {
+  name?: string;
+  description?: string;
+  price?: number;
+  startDate?: Date;
+  endDate?: Date;
+  availableSeats?: number;
+  category?: string;
+  location?: string;
+  ticketTypes?: {
+    id?: number;
+    name: string;
+    price: number;
+    quantity: number;
+    description?: string;
+  }[];
+}
+
+export interface SoftDeleteEventDTO {
+  slug: string;
+}
+
+export interface SearchParams {
+  name?: string;
+  category?: string;
+  location?: string;
+  startDate?: Date;
+  endDate?: Date;
+}
+
 export interface UpdateProfileDto {
   name?: string;
   profilePicture?: string;
