@@ -46,6 +46,67 @@ export class TransactionService {
     return transaction;
   }
 
+  async getAllTransaction() {
+    try {
+      const transactions = await this.prisma.transaction.findMany({
+        include: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
+          event: {
+            select: {
+              name: true,
+            },
+          },
+          ticketType: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+      return transactions.map((transactions) => ({
+        id: transactions.id,
+        user: transactions.user.name,
+        event: transactions.event.name,
+        ticketType: transactions.ticketType.name,
+        status: transactions.status,
+      }));
+    } catch (error) {
+      console.error("Error fetching transaction:", error);
+      throw new Error("Failed to fetch transaction");
+    }
+  }
+
+  async getTransactionById(transactionId: number) {
+    const transaction = await this.prisma.transaction.findUnique({
+      where: { id: transactionId },
+      include: {
+        user: true,
+        event: true,
+        ticketType: true,
+        coupon: true,
+        promotion: true,
+      },
+    });
+    if (!transaction) throw new Error("Transaction not found");
+
+    return {
+      user: transaction.user.name,
+      event: transaction.event.name,
+      ticketType: transaction.ticketType.name,
+      status: transaction.status,
+      paymentProof: transaction.paymentProof,
+      coupon: transaction.coupon,
+      promotion: transaction.promotion,
+      totalPrice: transaction.totalPrice,
+      createdAt: transaction.createdAt,
+      expiresAt: transaction.expiresAt,
+    };
+  }
+
   async uploadPaymentProof(transactionId: number, paymentProof: string) {
     const transaction = await this.prisma.transaction.update({
       where: { id: transactionId },
