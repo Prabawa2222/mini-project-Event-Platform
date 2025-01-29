@@ -93,3 +93,13 @@ export interface ChangePasswordDto {
   oldPassword: string;
   newPassword: string;
 }
+
+export interface TransactionRequest {
+  userId: number;
+  eventId: number;
+  ticketTypeId: number;
+  quantity: number;
+  pointsUsed: number;
+  couponId?: number;
+  promotionId?: number;
+}
