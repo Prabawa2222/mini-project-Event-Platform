@@ -4,7 +4,9 @@ import { TransactionController } from "../controllers/transactionController";
 const router = Router();
 const transaction = new TransactionController();
 
-router.post("/", (req, res) => transaction.createTransaction(req, res));
+router.post("/", async (req, res) => {
+  await transaction.createTransaction(req, res);
+});
 router.patch("/:id/payment-proof", (req, res) =>
   transaction.uploadPaymenProof(req, res)
 );
