@@ -7,6 +7,11 @@ const transaction = new TransactionController();
 router.post("/", async (req, res) => {
   await transaction.createTransaction(req, res);
 });
+
+router.get("/", (req, res) => transaction.getAllTransaction(req, res));
+
+router.get("/:id", (req, res) => transaction.getTransactionById(req, res));
+
 router.patch("/:id/payment-proof", (req, res) =>
   transaction.uploadPaymenProof(req, res)
 );

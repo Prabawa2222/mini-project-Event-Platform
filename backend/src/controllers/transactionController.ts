@@ -34,6 +34,27 @@ export class TransactionController {
     }
   }
 
+  async getAllTransaction(req: Request, res: Response): Promise<void> {
+    try {
+      const transaction = await this.transactionService.getAllTransaction();
+      res.send(transaction);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  }
+
+  async getTransactionById(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+    try {
+      const transaction = await this.transactionService.getTransactionById(
+        parseInt(id)
+      );
+      res.send(transaction);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  }
+
   async uploadPaymenProof(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
     const { paymentProof } = req.body;
