@@ -103,3 +103,9 @@ export interface TransactionRequest {
   couponId?: number;
   promotionId?: number;
 }
+
+export interface CreateVoucherInput {
+  discount: number;
+  expiresAt: string;
+  maxUses?: number;
+}

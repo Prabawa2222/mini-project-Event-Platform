@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { EventService } from "../services/eventService";
-import { SearchParams, UpdateEventDTO } from "../types";
+import { CreateVoucherInput, SearchParams, UpdateEventDTO } from "../types";
 
 export class EventController {
   private events = new EventService();
@@ -35,6 +35,15 @@ export class EventController {
     }
   }
 
+  async getUpcomingEvents(req: Request, res: Response) {
+    try {
+      const events = await this.events.getUpcomingEvents();
+      res.send(events);
+    } catch (err: any) {
+      res.status(404).json({ error: err.message });
+    }
+  }
+
   async updateEvent(req: Request, res: Response) {
     try {
       const slug = req.params.slug; // Capture the event slug from the request URL
@@ -59,12 +68,10 @@ export class EventController {
         return res.status(404).json({ error: "Event not found" });
       }
 
-      return res
-        .status(200)
-        .json({
-          message: "Event soft deleted successfully",
-          data: deletedEvent,
-        });
+      return res.status(200).json({
+        message: "Event soft deleted successfully",
+        data: deletedEvent,
+      });
     } catch (err: any) {
       return res.status(400).json({ error: err.message });
     }
@@ -99,6 +106,21 @@ export class EventController {
       res.json(events);
     } catch (err: any) {
       res.status(404).json({ error: err.message });
+    }
+  }
+
+  async createVoucherBySlug(req: Request, res: Response) {
+    try {
+      const { slug } = req.params;
+      const input: CreateVoucherInput = req.body;
+
+      const voucher = await this.events.createVoucherBySlug(slug, input);
+      res.status(201).send({
+        message: "Voucher created successfully",
+        data: voucher,
+      });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
     }
   }
 }

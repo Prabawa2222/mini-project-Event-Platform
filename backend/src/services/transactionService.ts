@@ -17,12 +17,34 @@ export class TransactionService {
       couponId,
       promotionId,
     } = data;
+
     const ticketType = await this.prisma.ticketType.findUnique({
       where: { id: ticketTypeId },
     });
     if (!ticketType || ticketType.quantity < quantity)
       throw new Error("Not enough tickets available");
-    const totalPrice = ticketType.price * quantity - pointsUsed;
+
+    // Calculate initial total price
+    let totalPrice = ticketType.price * quantity - pointsUsed;
+
+    // Apply promotion discount if a valid promotionId is provided
+    if (promotionId) {
+      const promotion = await this.prisma.promotion.findUnique({
+        where: { id: promotionId },
+      });
+
+      if (
+        promotion &&
+        promotion.eventId === eventId &&
+        new Date() <= promotion.endDate
+      ) {
+        const discountAmount = (promotion.discount / 100) * totalPrice;
+        totalPrice -= discountAmount;
+      } else {
+        throw new Error("Invalid or expired promotion");
+      }
+    }
+
     const transaction = await this.prisma.transaction.create({
       data: {
         userId,
@@ -37,12 +59,14 @@ export class TransactionService {
         expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
       },
     });
+
     await this.prisma.ticketType.update({
       where: { id: ticketTypeId },
       data: {
         quantity: ticketType.quantity - quantity,
       },
     });
+
     return transaction;
   }
 
