@@ -1,13 +1,133 @@
 "use client";
 
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { useDispatch, useSelector } from 'react-redux';
+import { useFormik } from "formik";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import * as Yup from "yup";
 
-const LoginSchema = Yup.object().
+const validationSchema = Yup.object({
+  email: Yup.string().email("Invalid email address").required("Required"),
+  password: Yup.string().required("Required"),
+});
 
-const LoginPage = () => {
-  return <div>LoginPage</div>;
-};
+export default function LoginPage() {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const { data: session, status } = useSession();
 
-export default LoginPage;
+  const handleSuccessfulLogin = async () => {
+    try {
+      // Wait a bit for the session to be updated
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const response = await fetch("/api/auth/session");
+      const sessionData = await response.json();
+      console.log("Session data:", sessionData);
+
+      // Check the role and redirect accordingly
+      if (sessionData?.user?.role?.toUpperCase() === "ORGANIZER") {
+        console.log("Redirecting to organizer dashboard");
+        router.push("/organizer/dashboard");
+      } else {
+        console.log("Redirecting to user dashboard");
+        router.push("/user/dashboard");
+      }
+      router.refresh();
+    } catch (error) {
+      console.error("Error during login redirect:", error);
+      setError("Error during redirect");
+    }
+  };
+
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        const result = await signIn("credentials", {
+          email: values.email,
+          password: values.password,
+          redirect: false,
+        });
+
+        console.log("Sign in result:", result); // Debug log
+
+        if (result?.error) {
+          setError(result.error);
+          return;
+        }
+
+        if (result?.ok) {
+          // Add a small delay to ensure session is updated
+          setTimeout(async () => {
+            await handleSuccessfulLogin();
+          }, 500);
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        setError("An error occurred during sign in");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+            Sign in to your account
+          </h2>
+        </div>
+
+        <form className="mt-8 space-y-6" onSubmit={formik.handleSubmit}>
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
+
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Email address"
+                onChange={formik.handleChange}
+                value={formik.values.email}
+              />
+            </div>
+            <div>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+                onChange={formik.handleChange}
+                value={formik.values.password}
+              />
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={formik.isSubmitting}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              {formik.isSubmitting ? "Signing in..." : "Sign in"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

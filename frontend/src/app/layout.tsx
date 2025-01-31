@@ -2,14 +2,19 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+import { Epilogue, Inter } from "next/font/google";
+import { Providers } from "./providers";
+
+const epilogue = Epilogue({
   subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-epilogue",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -24,10 +29,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${epilogue.variable} ${inter.variable}`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

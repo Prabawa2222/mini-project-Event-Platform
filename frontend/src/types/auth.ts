@@ -1,7 +1,17 @@
-export type UserRole = "user" | "organizer";
-
-export interface LoginFormValuse {
+export interface IUser {
+  id?: string;
   email: string;
   password: string;
-  role: UserRole;
+  name?: string;
+  role?: "user" | "organizer" | "admin";
+}
+
+export interface ILoginResponse {
+  token: string;
+  user: IUser;
+}
+
+export interface IAuthError {
+  message: string;
+  field?: string;
 }
