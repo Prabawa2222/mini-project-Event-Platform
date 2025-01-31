@@ -15,3 +15,8 @@ export interface IAuthError {
   message: string;
   field?: string;
 }
+
+export enum UserRole {
+  CUSTOMER = "CUSTOMER",
+  ORGANIZER = "ORGANIZER",
+}

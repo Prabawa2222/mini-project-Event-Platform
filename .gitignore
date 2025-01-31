@@ -50,3 +50,5 @@ backend/prisma/migrations
 /.vscode/
 
 .sakila.session.sql
+
+frontend/.next/

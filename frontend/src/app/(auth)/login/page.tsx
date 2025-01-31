@@ -80,7 +80,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-epilogue font-semibold text-gray-900">
             Sign in to your account
           </h2>
         </div>
@@ -90,26 +90,38 @@ export default function LoginPage() {
             <div className="text-red-500 text-sm text-center">{error}</div>
           )}
 
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
+          <div className="rounded-md shadow-sm space-y-5">
+            <div className="space-y-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Email Address
+              </label>
               <input
                 id="email"
                 name="email"
                 type="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
                 onChange={formik.handleChange}
                 value={formik.values.email}
               />
             </div>
-            <div>
+            <div className="space-y-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Password
+              </label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
                 onChange={formik.handleChange}
                 value={formik.values.password}
@@ -125,6 +137,14 @@ export default function LoginPage() {
             >
               {formik.isSubmitting ? "Signing in..." : "Sign in"}
             </button>
+          </div>
+          <div className="text-sm text-center">
+            <a
+              href="/register"
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
+              Don't have an account? Register here
+            </a>
           </div>
         </form>
       </div>
