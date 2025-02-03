@@ -41,7 +41,9 @@ const EventDashboardOrganizerPage = () => {
           <CardTitle className="text-2xl font-bold">
             Events Management
           </CardTitle>
-          <Button onClick={() => router.push("/dashboard/events/create")}>
+          <Button
+            onClick={() => router.push("organizer/dashboard/events/create")}
+          >
             Create Event
           </Button>
         </CardHeader>
