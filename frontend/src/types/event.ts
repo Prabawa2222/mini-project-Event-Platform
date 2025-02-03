@@ -45,6 +45,7 @@ export interface CreateEventDto {
     price: number;
     quantity: number;
   }[];
+  image: File;
 }
 
 export interface UpdateEventDTO {
