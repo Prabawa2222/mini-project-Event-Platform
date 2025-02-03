@@ -1,7 +1,12 @@
 import { searchEvents } from "../helpers/searchBar";
 import { slugGenerator } from "../helpers/slug.generator";
-import { CreateEventDto, EventPreview, UpdateEventDTO } from "../types";
-import { PrismaClient } from "@prisma/client";
+import {
+  CreateEventDto,
+  CreateVoucherInput,
+  EventPreview,
+  UpdateEventDTO,
+} from "../types";
+import { PrismaClient, Promotion } from "@prisma/client";
 
 export class EventService {
   private prisma: PrismaClient;
@@ -35,7 +40,6 @@ export class EventService {
       include: { ticketTypes: true },
     });
   }
-
   // Home Page
   async getAllEvents(): Promise<EventPreview[]> {
     const events = await this.prisma.event.findMany({
@@ -69,6 +73,38 @@ export class EventService {
     });
     if (!event) throw new Error("Event not found");
     return event;
+  }
+
+  async getUpcomingEvents(): Promise<EventPreview[]> {
+    const currentDate = new Date();
+    const events = await this.prisma.event.findMany({
+      where: {
+        startDate: {
+          gt: currentDate,
+        },
+        deletedAt: null,
+      },
+      select: {
+        name: true,
+        description: true,
+        price: true,
+        startDate: true,
+        category: true,
+        location: true,
+      },
+      orderBy: {
+        startDate: "asc",
+      },
+    });
+
+    return events.map((event) => ({
+      name: event.name,
+      price: event.price,
+      description: event.description.slice(0, 50) + "...",
+      startDate: event.startDate,
+      category: event.category,
+      location: event.location,
+    }));
   }
 
   async updateEvent(slug: string, eventData: UpdateEventDTO) {
@@ -130,5 +166,31 @@ export class EventService {
         },
       },
     });
+  }
+
+  // Create Voucher for Event
+  async createVoucherBySlug(
+    slug: string,
+    input: CreateVoucherInput
+  ): Promise<Promotion> {
+    const event = await this.prisma.event.findUnique({
+      where: { slug: slug },
+    });
+
+    if (!event) throw new Error("Event not found");
+
+    const code = Math.random().toString(36).substring(2, 12).toUpperCase();
+
+    const voucher = await this.prisma.promotion.create({
+      data: {
+        eventId: event.id,
+        discount: input.discount,
+        startDate: new Date(),
+        endDate: new Date(input.expiresAt),
+        code: code,
+        maxUses: input.maxUses,
+      },
+    });
+    return voucher;
   }
 }
