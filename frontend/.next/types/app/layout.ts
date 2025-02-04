@@ -1,4 +1,4 @@
-// File: /Volumes/SD Arief/Coding/Purwadhika/mini project - event management/frontend/src/app/layout.tsx
+// File: C:\Bootcamp\Mini Project\mini-project-Event-Platform\frontend\src\app\layout.tsx
 import * as entry from '../../../src/app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
