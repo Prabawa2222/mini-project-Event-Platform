@@ -67,6 +67,7 @@ model Event {
   location       String
   slug           String        @unique
   deletedAt      DateTime?
+  imageUrl       String?
   organizer      User          @relation("EventOrganizers", fields: [organizerId], references: [id])
   promotions     Promotion[]
   reviews        Review[]
