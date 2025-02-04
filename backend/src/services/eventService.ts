@@ -7,16 +7,29 @@ import {
   UpdateEventDTO,
 } from "../types";
 import { PrismaClient, Promotion } from "@prisma/client";
+import { ImageService } from "./utilService";
 
 export class EventService {
   private prisma: PrismaClient;
+  private imageService: ImageService;
 
   constructor() {
     this.prisma = new PrismaClient();
+    this.imageService = new ImageService();
   }
 
   // Create Event Page
-  async createEvent(organizerId: number, eventData: any) {
+  async createEvent(
+    organizerId: number,
+    eventData: any,
+    file?: Express.Multer.File
+  ) {
+    let imageUrl = null;
+
+    if (file) {
+      imageUrl = await this.imageService.uploadImage(file);
+    }
+
     const totalSeats = eventData.ticketTypes.reduce(
       (sum: number, ticket: any) => sum + ticket.quantity,
       0
@@ -33,6 +46,7 @@ export class EventService {
         availableSeats: totalSeats,
         category: "General",
         slug: slugGenerator(eventData.name),
+        imageUrl,
         ticketTypes: {
           create: eventData.ticketTypes,
         },

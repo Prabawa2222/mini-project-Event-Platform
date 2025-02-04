@@ -1,21 +1,35 @@
-import { CreateEventDto, EventPreview, UpdateEventDTO } from "@/types/event";
+import {
+  CreateEventDto,
+  CreateEventPayload,
+  EventPreview,
+  UpdateEventDTO,
+} from "@/types/event";
 
-const API_URL = `${process.env.NEXTAUTH_URL}/api/events`;
+const API_URL = `${process.env.NEXTAUTH_URL}`;
 
 export const eventService = {
-  async createEvent(
-    organizerId: number,
-    eventData: CreateEventDto
-  ): Promise<Event> {
-    const response = await fetch(API_URL, {
+  async createEvent(data: CreateEventPayload): Promise<Event> {
+    const formData = new FormData();
+
+    if (data.image) {
+      formData.append("image", data.image);
+    }
+
+    formData.append(
+      "data",
+      JSON.stringify({
+        organizerId: data.organizerId,
+        name: data.name,
+        description: data.description,
+        location: data.location,
+        date: data.date,
+        ticketTypes: data.ticketTypes,
+      })
+    );
+
+    const response = await fetch(`http://localhost:5043/api/events`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        organizerId,
-        ...eventData,
-      }),
+      body: formData,
     });
 
     if (!response.ok) {

@@ -1,6 +1,3 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/organizer/dashboard/page": "app/organizer/dashboard/page.js",
-  "/organizer/dashboard/events/create/page": "app/organizer/dashboard/events/create/page.js",
-  "/organizer/dashboard/events/page": "app/organizer/dashboard/events/page.js"
+  "/organizer/dashboard/events/create/page": "app/organizer/dashboard/events/create/page.js"
 }

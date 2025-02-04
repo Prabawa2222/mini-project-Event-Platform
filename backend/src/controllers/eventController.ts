@@ -1,20 +1,41 @@
 import { Request, Response } from "express";
 import { EventService } from "../services/eventService";
 import { CreateVoucherInput, SearchParams, UpdateEventDTO } from "../types";
+import { ImageService } from "../services/utilService";
+import multer from "multer";
 
 export class EventController {
   private events = new EventService();
+  private imageService = new ImageService();
 
   async createEvent(req: Request, res: Response) {
-    try {
-      // to be updated
-      const organizerId = 1;
-      const event = await this.events.createEvent(organizerId, req.body);
-      //const event = await this.events.create(req.user!.id, req.body);
-      res.status(201).json(event);
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
-    }
+    ImageService.upload(req, res, async (err) => {
+      if (err instanceof multer.MulterError) {
+        return res
+          .status(400)
+          .json({ error: "File upload error: " + err.message });
+      }
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      try {
+        const eventData = JSON.parse(req.body.data);
+        const event = await this.events.createEvent(
+          eventData.organizerId,
+          eventData,
+          req.file
+        );
+        res.status(201).json(event);
+      } catch (err: any) {
+        res
+          .status(400)
+          .json({ error: err.message || "Unknown error occurred" });
+      }
+    });
   }
 
   async getEvents(req: Request, res: Response) {

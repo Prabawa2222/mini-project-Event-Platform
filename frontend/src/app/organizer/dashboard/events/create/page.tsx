@@ -18,7 +18,9 @@ import { useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ImagePlus, X } from "lucide-react";
+
 import Image from "next/image";
+import { eventService } from "@/lib/api/events";
 
 const ticketTypeSchema = z.object({
   name: z.string().min(1, "Ticket name is required"),
@@ -27,6 +29,7 @@ const ticketTypeSchema = z.object({
 });
 
 const createEventSchema = z.object({
+  organizerId: z.number(),
   name: z.string().min(1, "Event name is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   location: z.string().min(1, "Location is required"),
@@ -47,6 +50,7 @@ const CreateEventPage = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(createEventSchema),
     defaultValues: {
+      organizerId: 1,
       name: "",
       description: "",
       location: "",
@@ -103,20 +107,15 @@ const CreateEventPage = () => {
   };
 
   const onSubmit = async (data: FormValues) => {
+    console.log("Form submission started");
     setIsSubmitting(true);
     try {
-      const formData = new FormData();
-      formData.append("name", data.name);
-      formData.append("description", data.description);
-      formData.append("location", data.location);
-      formData.append("date", data.date);
-      formData.append("ticketTypes", JSON.stringify(data.ticketTypes));
-
-      if (data.image) {
-        formData.append("image", data.image);
-      }
-
-      await createEvent(formData);
+      const formattedData = {
+        ...data,
+        date: new Date(data.date).toISOString(),
+      };
+      await eventService.createEvent(formattedData);
+      router.push("/events");
     } catch (error) {
       console.error("Submit error:", error);
     }
@@ -130,7 +129,14 @@ const CreateEventPage = () => {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form className="space-y-6">
+            <form
+              className="space-y-6"
+              onSubmit={form.handleSubmit((data) => {
+                console.log("Form submit event triggered");
+                console.log("Form data:", data);
+                onSubmit(data);
+              })}
+            >
               <div className="space-y-4">
                 <FormField
                   control={form.control}
@@ -139,7 +145,7 @@ const CreateEventPage = () => {
                     <FormItem>
                       <FormLabel>Event Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter event name" />
+                        <Input {...field} placeholder="Enter event name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -226,6 +232,19 @@ const CreateEventPage = () => {
                           type="datetime-local"
                           min={new Date().toISOString().slice(0, 16)}
                         />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter event location" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

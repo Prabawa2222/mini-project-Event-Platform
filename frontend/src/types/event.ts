@@ -45,7 +45,7 @@ export interface CreateEventDto {
     price: number;
     quantity: number;
   }[];
-  image: File;
+  image?: File;
 }
 
 export interface UpdateEventDTO {
@@ -61,4 +61,18 @@ export interface UpdateEventDTO {
     price: number;
     quantity: number;
   }[];
+}
+
+export interface CreateEventPayload {
+  organizerId: number;
+  name: string;
+  description: string;
+  location: string;
+  date: string;
+  ticketTypes: {
+    name: string;
+    price: number;
+    quantity: number;
+  }[];
+  image?: File;
 }
