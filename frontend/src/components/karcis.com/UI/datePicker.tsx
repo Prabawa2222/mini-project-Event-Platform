@@ -83,7 +83,7 @@ export default function DatePickerComponent({
           {/* Dropdown DatePicker */}
           <div
             ref={datePickerRef}
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white shadow-lg border rounded-md p-6 z-50 mt-10"
+            className="fixed top-[110px] left-[950px] transform -translate-x-1/2 -translate-y-1/2 bg-white shadow-lg border rounded-md p-6 z-50 mt-24"
           >
             <DatePicker
               selected={startDate}

@@ -8,7 +8,28 @@ interface CardProps {
   date: string;
   location: string;
   price: string;
+  category: string;
+  isOnline: boolean;
+  description: string;
 }
+
+// Helper function to format date
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  };
+  return date.toLocaleDateString("en-US", options);
+};
+
+// Helper function to limit description length (5-10 words)
+const truncateDescription = (text: string) => {
+  const words = text.split(" ");
+  return words.slice(0, 10).join(" ") + (words.length > 10 ? "..." : "");
+};
 
 const Card: React.FC<CardProps> = ({
   imageSrc,
@@ -16,28 +37,69 @@ const Card: React.FC<CardProps> = ({
   date,
   location,
   price,
+  category,
+  isOnline,
+  description,
 }) => {
   return (
-    <div className="p-2">
-      <div className="w-[300px] h-[320px]  bg-white shadow-xl rounded-lg hover:shadow-[10px_10px_20px_#4F4CEE] hover:cursor-pointer">
-        <Image
-          src={imageSrc}
-          width={1000}
-          height={100}
-          alt="example event"
-          className="rounded-t-lg h-[180px] w-full"
-        />
-        <div className="flex items-center gap-4 justify-center pt-2">
-          {/* Tanggal */}
-          <div className="w-16 h-[89px] flex flex-col items-center pt-2">
-            <h1 className="text-lg font-bold">{date.split(" ")[0]}</h1>
-            <p className="text-xl font-semibold">{date.split(" ")[1]}</p>
+    <div className="p-4">
+      <div className="w-full max-w-[320px] bg-white rounded-lg shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 overflow-hidden cursor-pointer relative">
+        {/* Image Section */}
+        <div className="relative w-full h-[180px]">
+          <Image
+            src={imageSrc}
+            width={320}
+            height={180}
+            alt="Event Image"
+            className="object-cover w-full h-full rounded-t-lg"
+          />
+          {/* Category Badge */}
+          <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-md">
+            {category}
           </div>
-          {/* Event Details */}
-          <div className="flex flex-col gap-2 justify-center">
-            <h1 className="text-lg font-bold">{title}</h1>
-            <p className="text-sm text-gray-600">{price}</p>
-            <p className="text-gray-500 text-sm">{location}</p>
+          {/* Online/Offline Badge */}
+          <div
+            className={`absolute top-2 right-2 text-xs font-semibold px-3 py-1 rounded-md ${
+              isOnline ? "bg-green-500" : "bg-gray-500"
+            } text-white`}
+          >
+            {isOnline ? "Online" : "Offline"}
+          </div>
+        </div>
+
+        {/* Card Content */}
+        <div className="p-4 flex flex-col gap-3 h-[270px]">
+          {/* Date Section */}
+          <div className="flex flex-col items-start bg-gradient-to-r from-blue-500 to-blue-300 text-white p-2 rounded-md">
+            <p className="text-sm font-semibold">{formatDate(date)}</p>
+          </div>
+
+          {/* Event Title */}
+          <h2 className="text-lg font-semibold text-gray-800 hover:text-blue-500 transition-all">
+            {title}
+          </h2>
+
+          {/* Description */}
+          <p className="text-sm text-gray-600">
+            {truncateDescription(description)}
+          </p>
+
+          {/* Location & Price */}
+          <div className="flex flex-col gap-4">
+            <p className="font-medium text-sm text-gray-700">{location}</p>
+            <p className="font-semibold text-lg text-blue-600 text-right">
+              {price}
+            </p>
+          </div>
+
+          {/* View Details Button */}
+          <div className="flex-grow flex items-end justify-end mt-2">
+            <Link
+              href={`/events/${title.replace(/\s+/g, "-").toLowerCase()}`}
+              className="text-sm text-blue-500 font-semibold hover:underline"
+            >
+              View Details
+            </Link>
           </div>
         </div>
       </div>

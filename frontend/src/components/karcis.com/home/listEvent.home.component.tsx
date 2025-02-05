@@ -31,6 +31,9 @@ interface Event {
   date: string;
   location: string;
   price: string;
+  category: string;
+  isOnline: boolean;
+  description: string;
 }
 
 interface EventListProps {
@@ -91,6 +94,9 @@ export default function EventList({
               date={event.date}
               location={event.location}
               price={event.price}
+              category={event.category || "Default Category"} // Menambahkan properti category
+              isOnline={event.isOnline || false} // Menambahkan properti isOnline
+              description={event.description || "No description available"} // Menambahkan deskripsi
             />
           ))}
         </Slider>

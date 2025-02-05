@@ -13,28 +13,40 @@ export default function Home() {
       title: "Panic! at the Disco",
       date: "Nov 01",
       location: "The Icon, BSD",
-      price: "Rp. 450.000 - 975.000",
+      price: "Rp. 450.000",
+      category: "Concert",
+      isOnline: false,
+      description: "A great concert event with Panic! at the Disco",
     },
     {
       imageSrc: "/topsell2.png",
       title: "Coldplay World Tour",
       date: "Dec 10",
       location: "GBK, Jakarta",
-      price: "Rp. 850.000 - 1.500.000",
+      price: "Rp. 850.000",
+      category: "Concert",
+      isOnline: true,
+      description: "The famous Coldplay concert live in Jakarta",
     },
     {
       imageSrc: "/topsell3.png",
       title: "The Weeknd Concert",
       date: "Jan 20",
       location: "ICE BSD",
-      price: "Rp. 700.000 - 1.200.000",
+      price: "Rp. 700.000",
+      category: "Concert",
+      isOnline: false,
+      description: "The Weeknd's concert is always unforgettable",
     },
     {
       imageSrc: "/topsell1.png",
       title: "Taylor Swift Eras Tour",
       date: "Feb 15",
       location: "Singapore National Stadium",
-      price: "Rp. 1.200.000 - 2.500.000",
+      price: "Rp. 1.200.000",
+      category: "Concert",
+      isOnline: true,
+      description: "Experience the amazing Eras Tour by Taylor Swift",
     },
   ];
 
@@ -44,35 +56,20 @@ export default function Home() {
       title: "Art Exhibition: Modern Era",
       date: "Mar 05",
       location: "Art Center, Jakarta",
-      price: "Rp. 100.000 - 300.000",
+      price: "Rp. 100.000",
+      category: "Art",
+      isOnline: false,
+      description: "A showcase of modern art",
     },
     {
       imageSrc: "/topsell3.png",
       title: "Indonesian Batik Showcase",
       date: "Apr 10",
       location: "Museum Nasional",
-      price: "Rp. 50.000 - 150.000",
-    },
-    {
-      imageSrc: "/topsell1.png",
-      title: "The Weeknd Concert",
-      date: "Jan 20",
-      location: "ICE BSD",
-      price: "Rp. 700.000 - 1.200.000",
-    },
-    {
-      imageSrc: "/exmp_evnt.png",
-      title: "The Weeknd Concert",
-      date: "Jan 20",
-      location: "ICE BSD",
-      price: "Rp. 700.000 - 1.200.000",
-    },
-    {
-      imageSrc: "/topsell2.png",
-      title: "The Weeknd Concert",
-      date: "Jan 20",
-      location: "ICE BSD",
-      price: "Rp. 700.000 - 1.200.000",
+      price: "Rp. 50.000",
+      category: "Art",
+      isOnline: true,
+      description: "Exhibition of traditional Indonesian batik",
     },
   ];
 
@@ -82,35 +79,20 @@ export default function Home() {
       title: "Jazz Night Festival",
       date: "May 20",
       location: "Kemayoran, Jakarta",
-      price: "Rp. 250.000 - 500.000",
+      price: "Rp. 250.000",
+      category: "Concert",
+      isOnline: false,
+      description: "Jazz festival with top musicians",
     },
     {
       imageSrc: "/topsell1.png",
       title: "Rock Legends Reunion",
       date: "Jun 15",
       location: "Balai Kartini",
-      price: "Rp. 400.000 - 800.000",
-    },
-    {
-      imageSrc: "/topsell2.png",
-      title: "Rock Legends Reunion",
-      date: "Jun 15",
-      location: "Balai Kartini",
-      price: "Rp. 400.000 - 800.000",
-    },
-    {
-      imageSrc: "/topsell3.png",
-      title: "Rock Legends Reunion",
-      date: "Jun 15",
-      location: "Balai Kartini",
-      price: "Rp. 400.000 - 800.000",
-    },
-    {
-      imageSrc: "/exmp_evnt.png",
-      title: "Rock Legends Reunion",
-      date: "Jun 15",
-      location: "Balai Kartini",
-      price: "Rp. 400.000 - 800.000",
+      price: "Rp. 400.000",
+      category: "Concert",
+      isOnline: true,
+      description: "Legendary rock bands reunited for a special concert",
     },
   ];
 
@@ -121,12 +103,25 @@ export default function Home() {
       <EventList title="Upcoming Events" events={upcomingEvents} />
       <HotOfferEvent />
       <TopSellingEvent />
+
+      {/* Browse Arts: Filter for 'Art' category */}
       <div className="mb-[-100px]">
-        <EventList title="Browse Arts" events={browseArts} />
+        <EventList
+          title="Browse Arts"
+          events={browseArts.filter((event) => event.category === "Art")} // Filter by Art category
+        />
       </div>
+
+      {/* Browse Concerts: Filter for 'Concert' category */}
       <div className="mb-[-50px]">
-        <EventList title="Browse Concerts" events={browseConcerts} />
+        <EventList
+          title="Browse Concerts"
+          events={browseConcerts.filter(
+            (event) => event.category === "Concert"
+          )} // Filter by Concert category
+        />
       </div>
+
       <ScrollToTop />
       <Footer />
     </div>

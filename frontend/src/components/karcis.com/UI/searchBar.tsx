@@ -8,7 +8,7 @@ export default function SearchBar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="absolute bottom-[-30px] left-1/2 transform -translate-x-1/2 w-full flex justify-center">
+    <div className="absolute bottom-[-10px] left-1/2 transform -translate-x-1/2 w-full flex justify-center">
       <div className="relative flex items-center w-[990px] h-[65px] px-5 border-2 border-black rounded-md bg-white shadow-md focus-within:shadow-[#4F4CEE] focus-within:shadow-2xl focus-within:border-[#4F4CEE]">
         {/* Search Input */}
         <input

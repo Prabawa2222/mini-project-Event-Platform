@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 import userRoutes from "./src/routes/userRoutes";
 import eventRoutes from "./src/routes/eventRoutes";
 import transactionRoutes from "./src/routes/transactionRoutes";
-import reviewRoutes from "./src/routes/reviewRoutes";
 import { authenticate } from "./src/middleware/authMiddleware";
 
 dotenv.config();
@@ -20,7 +19,6 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/transaction", transactionRoutes);
-app.use("/api/reviews", reviewRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
