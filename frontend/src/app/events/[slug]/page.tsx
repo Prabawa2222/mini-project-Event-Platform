@@ -22,7 +22,7 @@ export default function getEventBySlug() {
           <Banner />
           <div className="w-[1100px] mt-20 flex justify-between">
             <DetailEvent />
-            <BuyTicketCard />
+            <BuyTicketCard href="/tickets/slug" />
           </div>
           <EventInfo />
         </div>

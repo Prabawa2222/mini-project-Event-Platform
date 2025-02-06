@@ -77,7 +77,7 @@ export default function EventList({
         <div className="w-full h-[40px] flex justify-between items-center">
           <h1 className="text-2xl font-bold">{title}</h1>
           <Link
-            href="#"
+            href="/events"
             className="text-[13px] text-[#4F4CEE] hover:underline mr-10 pt-5"
           >
             View All
