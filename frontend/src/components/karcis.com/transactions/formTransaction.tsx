@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { useState } from "react";
 
 const FormTransaction: React.FC = () => {
@@ -83,16 +84,18 @@ const FormTransaction: React.FC = () => {
 
       {/* Tombol Submit */}
       <div className="col-span-2 flex justify-center mt-4">
-        <button
-          className={`px-6 py-2 text-white rounded-md transition-all duration-300 ${
-            isFormValid
-              ? "bg-[#4F4CEE] hover:opacity-90 hover:scale-105 hover:shadow-lg"
-              : "bg-[#DADAFB] cursor-not-allowed"
-          }`}
-          disabled={!isFormValid}
-        >
-          Continue to Payment
-        </button>
+        <Link href="transactions/payment-methods">
+          <button
+            className={`px-6 py-2 text-white rounded-md transition-all duration-300 ${
+              isFormValid
+                ? "bg-[#4F4CEE] hover:opacity-90 hover:scale-105 hover:shadow-lg"
+                : "bg-[#DADAFB] cursor-not-allowed"
+            }`}
+            disabled={!isFormValid}
+          >
+            Continue to Payment
+          </button>
+        </Link>
       </div>
     </div>
   );

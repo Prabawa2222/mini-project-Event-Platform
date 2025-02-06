@@ -1,13 +1,13 @@
 import NavbarAfterLogin from "@/components/karcis.com/common/NavbarAfterLogin";
+import EventDetailTransaction from "@/components/karcis.com/transactions/eventDetailTransaction.component";
 import FormTransaction from "@/components/karcis.com/transactions/formTransaction";
-import HeroTransaction from "@/components/karcis.com/transactions/heroTrasaction";
 import BackButton from "@/components/karcis.com/UI/buttonBack";
 
 export default function Transactions() {
   return (
     <div>
       <NavbarAfterLogin />
-      <div className="w-[80%] min-h-auto flex flex-col mx-auto mt-40 gap-10">
+      <div className="w-[80%] min-h-screen flex flex-col mx-auto mt-40 gap-10">
         <div className="w-[50%] h-[50px] flex items-center gap-16">
           <BackButton href="/events/:slug" />
           <span className="text-3xl font-semibold">
@@ -22,37 +22,7 @@ export default function Transactions() {
                 your email address is correct
               </p>
             </div>
-            <div className="w-[471px] h-[500px] flex flex-col gap-4">
-              <h1 className="text-xl font-semibold">Event Detail</h1>
-              <div className="w-full px-4 flex justify-start">
-                <HeroTransaction />
-              </div>
-              <hr className="border-t-2 border-dashed border-[#7F7DF3] mt-2" />
-              <h1 className="text-xl font-semibold mt-1">Event Detail</h1>
-              <div className="w-full px-4 flex justify-between">
-                <p>Ticket Type</p>
-                <p className="font-semibold">2 X Paket VIP</p>
-              </div>
-              <hr className="border-t-2 border-dashed border-[#7F7DF3] mt-2" />
-              <h1 className="text-xl font-semibold mt-1">Event Detail</h1>
-              <div className="w-full px-4 flex justify-between">
-                <p>Ticket Price</p>
-                <p className="font-semibold">2 X Rp.250.000</p>
-              </div>
-              <div className="w-full px-4 flex justify-between">
-                <p>Service & Handling</p>
-                <p className="font-semibold">-</p>
-              </div>
-              <div className="w-full px-4 flex justify-between">
-                <p>Admin Fee</p>
-                <p className="font-semibold">-</p>
-              </div>
-              <hr className="border-t-2 border-dashed border-[#7F7DF3] mt-2" />
-              <div className="w-full px-4 flex justify-between">
-                <p className="font-semibold">Total</p>
-                <p className="font-semibold">Rp. 500.000</p>
-              </div>
-            </div>
+            <EventDetailTransaction />
           </div>
           <div className="w-[655px] h-16">
             <FormTransaction />
