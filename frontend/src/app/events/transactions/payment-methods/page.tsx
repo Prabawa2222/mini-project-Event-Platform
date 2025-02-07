@@ -1,11 +1,12 @@
 "use client";
 
 import NavbarAfterLogin from "@/components/karcis.com/common/NavbarAfterLogin";
-import EventDetailTransaction from "@/components/karcis.com/transactions/eventDetailTransaction.component";
-import PaymentOptions from "@/components/karcis.com/transactions/listPaymentMethod.component";
+
+import PaymentOptions from "@/components/karcis.com/transactions/listPaymentOptions.component";
 import BackButton from "@/components/karcis.com/UI/buttonBack";
 import { useState } from "react";
 import Link from "next/link";
+import FinalDetailTransaction from "@/components/karcis.com/transactions/finalDetailTrasanction.component";
 
 export default function PaymentMethods() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
@@ -31,10 +32,10 @@ export default function PaymentMethods() {
               </p>
             </div>
             <div className="flex flex-col gap-10">
-              <EventDetailTransaction />
+              <FinalDetailTransaction />
               {/* Pay Now Button */}
-              <div className="col-span-2 flex justify-center mt-40">
-                <Link href="transactions/payment-methods">
+              <div className="col-span-2 flex justify-center">
+                <Link href="/events/transactions/payment-processes">
                   <button
                     className={`px-10 py-2 text-white rounded-md transition-all duration-300 ${
                       isFormValid

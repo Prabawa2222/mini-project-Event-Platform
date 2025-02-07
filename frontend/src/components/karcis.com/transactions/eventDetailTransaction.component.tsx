@@ -11,10 +11,10 @@ const EventDetailTransaction = () => {
   // Load voucher from localStorage when the component mounts
   useEffect(() => {
     const savedVoucherCode = localStorage.getItem("voucherCode");
-    if (savedVoucherCode) {
-      setVoucherCode(savedVoucherCode);
-      applyVoucher(savedVoucherCode);
-    }
+    // if (savedVoucherCode) {
+    //   setVoucherCode(savedVoucherCode);
+    //   applyVoucher(savedVoucherCode);
+    // }
   }, []);
 
   // Handle voucher code input
