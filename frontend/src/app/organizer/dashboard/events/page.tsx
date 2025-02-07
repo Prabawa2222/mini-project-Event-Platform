@@ -66,14 +66,17 @@ const EventDashboardOrganizerPage = () => {
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="category" />
               </SelectTrigger>
-              {/* <SelectContent>
+              <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent> */}
+                <SelectItem value="MUSIC">Music</SelectItem>
+                <SelectItem value="SPORTS">Sports</SelectItem>
+                <SelectItem value="TECHNOLOGY">Technology</SelectItem>
+                <SelectItem value="BUSINESS">Business</SelectItem>
+                <SelectItem value="EDUCATION">Education</SelectItem>
+                <SelectItem value="ENTERTAINMENT">Entertainment</SelectItem>
+                <SelectItem value="GENERAL">General</SelectItem>
+                <SelectItem value="OTHER">Other</SelectItem>
+              </SelectContent>
             </Select>
             <Button type="submit">Search</Button>
           </form>

@@ -8,7 +8,7 @@ export class AnalyticsController {
     this.analyticsService = new EventAnalyticsService();
   }
 
-  async getEventAnalytics(req: Request, res: Response) {
+  getEventAnalytics = async (req: Request, res: Response) => {
     try {
       const { eventId } = req.params;
       const analytics = await this.analyticsService.getEventAnalytics(
@@ -18,9 +18,9 @@ export class AnalyticsController {
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch event analytics" });
     }
-  }
+  };
 
-  async getOrganizerAnalytics(req: Request, res: Response) {
+  getOrganizerAnalytics = async (req: Request, res: Response) => {
     try {
       const { organizerId } = req.params;
       const analytics = await this.analyticsService.getOrganizerAnalytics(
@@ -30,9 +30,9 @@ export class AnalyticsController {
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch organizer analytics" });
     }
-  }
+  };
 
-  async getEventSalesOverTime(req: Request, res: Response) {
+  getEventSalesOverTime = async (req: Request, res: Response) => {
     try {
       const { eventId } = req.params;
       const { interval = "daily" } = req.query;
@@ -44,5 +44,5 @@ export class AnalyticsController {
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch sales data" });
     }
-  }
+  };
 }

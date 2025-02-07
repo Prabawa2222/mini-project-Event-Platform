@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Home, Menu, Settings, Ticket, User } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 const items = [
   {
@@ -23,27 +24,30 @@ const items = [
   },
   {
     title: "Event",
-    url: "/dashboard/events",
+    url: "/organizer/dashboard/events",
     icon: Ticket,
   },
   {
     title: "Profile",
-    url: "/profile",
+    url: "/organizer/profile",
     icon: User,
   },
   {
     title: "Settings",
-    url: "/settings",
+    url: "/organizer/settings",
     icon: Settings,
   },
 ];
 
 export function DashboardSidebar() {
+  const { data: session } = useSession();
+  const organizeName = session?.user?.name || "Organizer";
+
   return (
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Organizer</SidebarGroupLabel>
+          <SidebarGroupLabel>{organizeName}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
