@@ -6,14 +6,15 @@ export interface TicketType {
   eventId: number;
 }
 
-export interface Event {
+export interface EventFormData {
   id: number;
   name: string;
   description: string;
   location: string;
   price: number;
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
+  imageUrl: string;
   availableSeats: number;
   category: string;
   slug: string;
@@ -28,6 +29,7 @@ export interface Event {
 
 export interface EventPreview {
   name: string;
+  slug: string;
   price: number;
   description: string;
   startDate: Date;
@@ -68,11 +70,13 @@ export interface CreateEventPayload {
   name: string;
   description: string;
   location: string;
-  date: string;
+  startDate?: Date;
+  endDate?: Date;
   ticketTypes: {
     name: string;
     price: number;
     quantity: number;
   }[];
   image?: File;
+  category: string;
 }

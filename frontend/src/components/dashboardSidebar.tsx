@@ -18,22 +18,22 @@ import Link from "next/link";
 const items = [
   {
     title: "Home",
-    url: "#",
+    url: "/organizer/dashboard",
     icon: Home,
   },
   {
     title: "Event",
-    url: "#",
+    url: "/dashboard/events",
     icon: Ticket,
   },
   {
     title: "Profile",
-    url: "#",
+    url: "/profile",
     icon: User,
   },
   {
     title: "Settings",
-    url: "#",
+    url: "/settings",
     icon: Settings,
   },
 ];

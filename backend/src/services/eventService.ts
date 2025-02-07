@@ -6,7 +6,7 @@ import {
   EventPreview,
   UpdateEventDTO,
 } from "../types";
-import { PrismaClient, Promotion } from "@prisma/client";
+import { EventCategory, PrismaClient, Promotion } from "@prisma/client";
 import { ImageService } from "./utilService";
 
 export class EventService {
@@ -41,10 +41,10 @@ export class EventService {
         location: eventData.location,
         organizerId,
         price: 0,
-        startDate: new Date(eventData.date),
-        endDate: new Date(eventData.date),
+        startDate: new Date(eventData.startDate),
+        endDate: new Date(eventData.endDate),
         availableSeats: totalSeats,
-        category: "General",
+        category: eventData.category as EventCategory,
         slug: slugGenerator(eventData.name),
         imageUrl,
         ticketTypes: {
@@ -59,6 +59,7 @@ export class EventService {
     const events = await this.prisma.event.findMany({
       select: {
         name: true,
+        slug: true,
         description: true,
         price: true,
         startDate: true,
@@ -68,6 +69,7 @@ export class EventService {
     });
     return events.map((event) => ({
       name: event.name,
+      slug: event.slug,
       price: event.price,
       description: event.description.slice(0, 50) + "...", // Potong description
       startDate: event.startDate,
@@ -168,18 +170,28 @@ export class EventService {
 
   // Organizer
   async getOrganizerEvents(organizerId: number) {
-    return await this.prisma.event.findMany({
-      include: {
-        ticketTypes: true,
-        transactions: {
-          select: {
-            status: true,
-            totalPrice: true,
-            quantity: true,
-          },
-        },
+    const events = await this.prisma.event.findMany({
+      where: { organizerId },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        startDate: true,
+        location: true,
+        category: true,
+        availableSeats: true,
       },
     });
+
+    return events.map((event) => ({
+      id: event.id.toString(),
+      slug: event.slug,
+      title: event.name,
+      date: event.startDate.toISOString(),
+      location: event.location,
+      category: event.category,
+      capacity: event.availableSeats,
+    }));
   }
 
   // Create Voucher for Event

@@ -16,23 +16,35 @@ import {
   SelectValue,
 } from "@radix-ui/react-select";
 import EventTable from "@/components/dashboard/events/eventTable";
+import { EventPreview } from "@/types/event";
 
 const EventDashboardOrganizerPage = () => {
   //const dispatch = useDispatch();
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterCategory, setFilterCategory] = useState<string>("");
 
-  //fetch events with react query
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: ["events"],
-    queryFn: eventService.getAllEvents,
+  // to be updateß
+  const organizerId = "1";
+
+  const { data: events, isLoading } = useQuery({
+    queryKey: ["events", organizerId],
+    queryFn: () => {
+      //console.log("Fetching events for organizer:", organizerId);
+      return eventService.getAllEventsByOrganizerId(organizerId);
+    },
   });
 
-  // delete
+  const handleView = (event: EventPreview) => {
+    router.push(`/organizer/dashboard/events/${event.slug}`);
+  };
 
-  const categories = ["Sport", "Music"];
+  const handleEdit = (event: EventPreview) => {
+    router.push(`/organizer/dashboard/events/edit/${event.slug}`);
+  };
+
+  const handleDelete = (event: EventPreview) => {
+    // Implement delete functionality
+    console.log("Delete event:", event);
+  };
 
   return (
     <div className="p-6 space-y-6 w-[980px] mr-16">
@@ -54,18 +66,24 @@ const EventDashboardOrganizerPage = () => {
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="category" />
               </SelectTrigger>
-              <SelectContent>
+              {/* <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
                   </SelectItem>
                 ))}
-              </SelectContent>
+              </SelectContent> */}
             </Select>
             <Button type="submit">Search</Button>
           </form>
-          <EventTable />
+          <EventTable
+            events={events}
+            isLoading={isLoading}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
         </CardContent>
       </Card>
     </div>

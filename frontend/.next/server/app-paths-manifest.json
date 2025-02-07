@@ -1,3 +1,8 @@
 {
-  "/organizer/dashboard/events/create/page": "app/organizer/dashboard/events/create/page.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/organizer/dashboard/page": "app/organizer/dashboard/page.js",
+  "/organizer/dashboard/events/page": "app/organizer/dashboard/events/page.js",
+  "/organizer/dashboard/events/create/page": "app/organizer/dashboard/events/create/page.js",
+  "/(auth)/login/page": "app/(auth)/login/page.js"
 }

@@ -3,12 +3,11 @@ import {
   CreateEventPayload,
   EventPreview,
   UpdateEventDTO,
+  EventFormData,
 } from "@/types/event";
 
-const API_URL = `${process.env.NEXTAUTH_URL}`;
-
 export const eventService = {
-  async createEvent(data: CreateEventPayload): Promise<Event> {
+  async createEvent(data: CreateEventPayload): Promise<EventFormData> {
     const formData = new FormData();
 
     if (data.image) {
@@ -22,32 +21,53 @@ export const eventService = {
         name: data.name,
         description: data.description,
         location: data.location,
-        date: data.date,
+        startDate: data.startDate,
+        endDate: data.endDate,
         ticketTypes: data.ticketTypes,
+        category: data.category,
       })
     );
 
-    const response = await fetch(`http://localhost:5043/api/events`, {
+    const response = await fetch(`${process.env.NEXTAUTH_URL}/api/events`, {
       method: "POST",
       body: formData,
     });
 
     if (!response.ok) {
-      throw new Error("Failed to create event");
+      const errorText = await response.text();
+      console.error("Server response:", errorText);
+      throw new Error(`Failed to create event: ${errorText}`);
     }
     return response.json();
   },
 
-  async getAllEvents(): Promise<EventPreview[]> {
-    const response = await fetch(API_URL);
+  async getAllEventsByOrganizerId(
+    organizerId: string
+  ): Promise<EventPreview[]> {
+    const response = await fetch(
+      `${process.env.NEXTAUTH_URL}/api/events/organizer?organizerId=${organizerId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log("API Response:", response);
+
+    const data = await response.json();
+    console.log("Parsed Data:", data);
+
     if (!response.ok) {
       throw new Error("Failed to fetch events");
     }
-    return response.json();
+    return data;
   },
 
-  async getEventBySlug(slug: string): Promise<Event> {
-    const response = await fetch(`${API_URL}/${slug}`);
+  async getEventBySlug(slug: string): Promise<EventFormData> {
+    const response = await fetch(
+      `${process.env.NEXTAUTH_URL}/api/events/${slug}`
+    );
     if (!response.ok) {
       throw new Error("Failed to fetch event");
     }
@@ -55,13 +75,16 @@ export const eventService = {
   },
 
   async updateEvent(slug: string, eventData: UpdateEventDTO): Promise<Event> {
-    const response = await fetch(`${API_URL}/${slug}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(eventData),
-    });
+    const response = await fetch(
+      `${process.env.NEXTAUTH_URL}/api/events/${slug}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(eventData),
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to update event");
@@ -70,7 +93,7 @@ export const eventService = {
   },
 
   async deleteEvent(slug: string): Promise<void> {
-    const response = await fetch(`${API_URL}/${slug}`, {
+    const response = await fetch(`${process.env.NEXTAUTH_URL}/${slug}`, {
       method: "DELETE",
     });
     if (!response.ok) {
@@ -80,7 +103,9 @@ export const eventService = {
 
   async searchEvents(searchParams: any): Promise<Event[]> {
     const queryString = new URLSearchParams(searchParams).toString();
-    const response = await fetch(`${API_URL}/search?${queryString}`);
+    const response = await fetch(
+      `${process.env.NEXTAUTH_URL}/search?${queryString}`
+    );
     if (!response.ok) {
       throw new Error("Failed to search events");
     }
@@ -88,7 +113,9 @@ export const eventService = {
   },
 
   async getOrganizerEvents(organizerId: number): Promise<Event[]> {
-    const response = await fetch(`${API_URL}/organizer/${organizerId}`);
+    const response = await fetch(
+      `${process.env.NEXTAUTH_URL}/organizer/${organizerId}`
+    );
 
     if (!response.ok) {
       throw new Error("Failed to fetch organizer events");

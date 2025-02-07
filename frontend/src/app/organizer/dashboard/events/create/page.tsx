@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -21,42 +21,44 @@ import { ImagePlus, X } from "lucide-react";
 
 import Image from "next/image";
 import { eventService } from "@/lib/api/events";
-
-const ticketTypeSchema = z.object({
-  name: z.string().min(1, "Ticket name is required"),
-  price: z.number().min(0, "Price must be 0 or greater"),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
-});
-
-const createEventSchema = z.object({
-  organizerId: z.number(),
-  name: z.string().min(1, "Event name is required"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  location: z.string().min(1, "Location is required"),
-  date: z.string().min(1, "Date is required"),
-  ticketTypes: z
-    .array(ticketTypeSchema)
-    .min(1, "At least one ticket type is required"),
-  image: z.instanceof(File).optional(),
-});
-
-type FormValues = z.infer<typeof createEventSchema>;
+import { CreateEventFormValues, createEventSchema } from "@/lib/schema";
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { useOrganizer } from "@/context/organizer/OrganizerContext";
 
 const CreateEventPage = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const { organizerId, isOrganizer, isLoading } = useOrganizer();
 
-  const form = useForm<FormValues>({
+  useEffect(() => {
+    console.log("Context values:", {
+      organizerId,
+      isOrganizer,
+      isLoading,
+    });
+  }, [organizerId, isOrganizer, isLoading]);
+
+  const form = useForm<CreateEventFormValues>({
     resolver: zodResolver(createEventSchema),
     defaultValues: {
-      organizerId: 1,
+      //Jangan lupa ganti
+      organizerId: 0,
       name: "",
       description: "",
       location: "",
-      date: "",
+      startDate: "",
+      endDate: "",
+      category: "OTHER",
       ticketTypes: [{ name: "", price: 0, quantity: 1 }],
       image: undefined,
+      promotions: [],
     },
   });
 
@@ -106,16 +108,29 @@ const CreateEventPage = () => {
     }
   };
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (data: CreateEventFormValues) => {
     console.log("Form submission started");
     setIsSubmitting(true);
     try {
+      const totalSeats = data.ticketTypes.reduce(
+        (sum, ticket) => sum + ticket.quantity,
+        0
+      );
+      const basePrice = Math.min(
+        ...data.ticketTypes.map((ticket) => ticket.price)
+      );
+
       const formattedData = {
         ...data,
-        date: new Date(data.date).toISOString(),
+        organizerId: Number(organizerId),
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        availableSeats: totalSeats,
+        price: basePrice,
+        category: data.category,
       };
       await eventService.createEvent(formattedData);
-      router.push("/events");
+      router.push("organizer/dashboard/events");
     } catch (error) {
       console.error("Submit error:", error);
     }
@@ -222,21 +237,73 @@ const CreateEventPage = () => {
                 />
                 <FormField
                   control={form.control}
-                  name="date"
+                  name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="datetime-local"
-                          min={new Date().toISOString().slice(0, 16)}
-                        />
-                      </FormControl>
+                      <FormLabel>Category</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="MUSIC">Music</SelectItem>
+                          <SelectItem value="SPORTS">Sports</SelectItem>
+                          <SelectItem value="TECHNOLOGY">Technology</SelectItem>
+                          <SelectItem value="BUSINESS">Business</SelectItem>
+                          <SelectItem value="EDUCATION">Education</SelectItem>
+                          <SelectItem value="ENTERTAINMENT">
+                            Entertainment
+                          </SelectItem>
+                          <SelectItem value="GENERAL">General</SelectItem>
+                          <SelectItem value="OTHER">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                <div className="flex gap-5">
+                  <FormField
+                    control={form.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Date</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="datetime-local"
+                            min={new Date().toISOString().slice(0, 16)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="endDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Date</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="datetime-local"
+                            min={new Date().toISOString().slice(0, 16)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="location"

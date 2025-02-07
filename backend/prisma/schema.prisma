@@ -63,7 +63,7 @@ model Event {
   organizerId    Int
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  category       String
+  category       EventCategory @default(OTHER)
   location       String
   slug           String        @unique
   deletedAt      DateTime?
@@ -156,4 +156,15 @@ enum PointsType {
 enum CouponType {
   REFERRAL
   REWARD
+}
+
+enum EventCategory {
+  MUSIC
+  GENERAL
+  SPORTS
+  TECHNOLOGY
+  BUSINESS
+  EDUCATION
+  ENTERTAINMENT
+  OTHER
 }

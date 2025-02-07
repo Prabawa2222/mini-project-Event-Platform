@@ -1,3 +1,4 @@
+import { EventCategory } from "@prisma/client";
 import { Request } from "express";
 
 declare global {
@@ -35,7 +36,7 @@ export interface CreateEventDto {
   startDate: Date;
   endDate: Date;
   availableSeats: number;
-  category: string;
+  category?: EventCategory;
   location: string;
   ticketTypes: {
     name: string;
@@ -50,7 +51,7 @@ export interface EventPreview {
   description: string;
   price: number;
   startDate: Date;
-  category: string;
+  category?: EventCategory;
   location: string;
 }
 
@@ -61,7 +62,7 @@ export interface UpdateEventDTO {
   startDate?: Date;
   endDate?: Date;
   availableSeats?: number;
-  category?: string;
+  category?: EventCategory;
   location?: string;
   ticketTypes?: {
     id?: number;
@@ -108,4 +109,52 @@ export interface CreateVoucherInput {
   discount: number;
   expiresAt: string;
   maxUses?: number;
+}
+
+export interface EventAnalytics {
+  totalSales: number;
+  ticketsSold: number;
+  averageRating: number;
+  salesByTicketType: TicketTypeSales[];
+  transactionStatuses: TransactionStatusCount[];
+}
+
+export interface OrganizerAnalytics {
+  totalEvents: number;
+  eventsByCategory: CategoryCount[];
+  totalRevenue: number;
+  bestSellingEvents: BestSellingEvent[];
+  upcomingEvents: UpcomingEvent[];
+}
+
+export interface TicketTypeSales {
+  ticketTypeId: number;
+  _sum: {
+    quantity: number;
+    totalPrice: number;
+  };
+}
+
+export interface TransactionStatusCount {
+  status: string;
+  _count: number;
+}
+
+export interface CategoryCount {
+  category: string;
+  _count: number;
+}
+
+export interface BestSellingEvent {
+  name: string;
+  salesCount: number;
+}
+
+export interface UpcomingEvent {
+  name: string;
+  startDate: Date;
+  availableSeats: number;
+  _count: {
+    transactions: number;
+  };
 }

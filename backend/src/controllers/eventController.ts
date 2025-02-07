@@ -122,7 +122,7 @@ export class EventController {
 
   async getOrganizerEvents(req: Request, res: Response) {
     try {
-      const organizerId = 1;
+      const organizerId = req.body.organizerId;
       const events = await this.events.getOrganizerEvents(organizerId);
       res.json(events);
     } catch (err: any) {
