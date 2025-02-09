@@ -194,6 +194,55 @@ export class EventService {
     }));
   }
 
+  // Search only for organizer
+  async searchOrganizerEvents(
+    organizerId: number,
+    name?: string,
+    category?: EventCategory
+  ) {
+    const whereConditions: any = {
+      organizerId,
+      deletedAt: null,
+    };
+
+    if (name) {
+      whereConditions.name = {
+        contains: name,
+        mode: "insensitive",
+      };
+    }
+
+    if (category) {
+      whereConditions.category = category;
+    }
+
+    const events = await this.prisma.event.findMany({
+      where: whereConditions,
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        startDate: true,
+        location: true,
+        category: true,
+        availableSeats: true,
+      },
+      orderBy: {
+        startDate: "desc",
+      },
+    });
+
+    return events.map((event) => ({
+      id: event.id.toString(),
+      slug: event.slug,
+      title: event.name,
+      date: event.startDate.toISOString(),
+      location: event.location,
+      category: event.category,
+      capacity: event.availableSeats,
+    }));
+  }
+
   // Create Voucher for Event
   async createVoucherBySlug(
     slug: string,

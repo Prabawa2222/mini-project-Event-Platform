@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useDispatch } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { eventService } from "@/lib/api/events";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,22 +13,37 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@radix-ui/react-select";
+} from "@/components/ui/select";
 import EventTable from "@/components/dashboard/events/eventTable";
 import { EventPreview } from "@/types/event";
+import { useOrganizer } from "@/context/organizer/OrganizerContext";
+import { useDebounce } from "use-debounce";
 
 const EventDashboardOrganizerPage = () => {
-  //const dispatch = useDispatch();
   const router = useRouter();
+  const { organizerId } = useOrganizer();
+  const [searchTerm, setsearchTerm] = useState("");
 
-  // to be updateß
-  const organizerId = "1";
+  const [selectedCategory, setSelectedCategory] = useState("");
+
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
+
+  //const organizerId = "1";
 
   const { data: events, isLoading } = useQuery({
-    queryKey: ["events", organizerId],
+    queryKey: ["events", organizerId, debouncedSearchTerm, selectedCategory],
     queryFn: () => {
-      //console.log("Fetching events for organizer:", organizerId);
-      return eventService.getAllEventsByOrganizerId(organizerId);
+      if (!organizerId) return [];
+
+      if (!debouncedSearchTerm && !selectedCategory) {
+        return eventService.getAllEventsByOrganizerId(organizerId as string);
+      }
+
+      return eventService.searchOrganizerEvents(
+        organizerId as string,
+        debouncedSearchTerm || undefined,
+        selectedCategory || undefined
+      );
     },
   });
 
@@ -61,13 +75,21 @@ const EventDashboardOrganizerPage = () => {
         </CardHeader>
         <CardContent>
           <form className="flex gap-4 mb-6">
-            <Input placeholder="Search events..." className="max-w-sm" />
-            <Select>
+            <Input
+              placeholder="Search events..."
+              className="max-w-sm"
+              value={searchTerm}
+              onChange={(e) => setsearchTerm(e.target.value)}
+            />
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="category" />
+                <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value=" ">All Categories</SelectItem>
                 <SelectItem value="MUSIC">Music</SelectItem>
                 <SelectItem value="SPORTS">Sports</SelectItem>
                 <SelectItem value="TECHNOLOGY">Technology</SelectItem>
@@ -78,7 +100,6 @@ const EventDashboardOrganizerPage = () => {
                 <SelectItem value="OTHER">Other</SelectItem>
               </SelectContent>
             </Select>
-            <Button type="submit">Search</Button>
           </form>
           <EventTable
             events={events}

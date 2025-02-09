@@ -22,4 +22,24 @@ router.post("/rollback/:id", (req, res) =>
   transaction.rollbackTransaction(req, res)
 );
 
+router.get("/organizer/:organizerId", (req, res) =>
+  transaction.getTransactionsByOrganizerId(req, res)
+);
+
+router.get("/organizer/:organizerId/pending", (req, res) =>
+  transaction.getPendingTransactionsByOrganizerId(req, res)
+);
+
+router.get("/organizer/:organizerId/summary", (req, res) =>
+  transaction.getTransactionsSummaryByOrganizerId(req, res)
+);
+
+router.post("/:id/approve", (req, res) =>
+  transaction.approveTransaction(req, res)
+);
+
+router.post("/:id/reject", (req, res) =>
+  transaction.rejectTransaction(req, res)
+);
+
 export default router;

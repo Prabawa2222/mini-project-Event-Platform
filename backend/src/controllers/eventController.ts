@@ -3,6 +3,7 @@ import { EventService } from "../services/eventService";
 import { CreateVoucherInput, SearchParams, UpdateEventDTO } from "../types";
 import { ImageService } from "../services/utilService";
 import multer from "multer";
+import { EventCategory } from "@prisma/client";
 
 export class EventController {
   private events = new EventService();
@@ -117,6 +118,26 @@ export class EventController {
       res.json(events);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
+    }
+  }
+
+  async searchOrganizerEvents(req: Request, res: Response) {
+    try {
+      const organizerId = parseInt(req.params.organizerId);
+      const { name, category } = req.query;
+
+      const events = await this.events.searchOrganizerEvents(
+        organizerId,
+        name as string,
+        category as EventCategory
+      );
+
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({
+        message: "Error searching events",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   }
 

@@ -121,6 +121,7 @@ export class TransactionService {
       user: transaction.user.name,
       event: transaction.event.name,
       ticketType: transaction.ticketType.name,
+      quantity: transaction.quantity,
       status: transaction.status,
       paymentProof: transaction.paymentProof,
       coupon: transaction.coupon,
@@ -128,6 +129,7 @@ export class TransactionService {
       totalPrice: transaction.totalPrice,
       createdAt: transaction.createdAt,
       expiresAt: transaction.expiresAt,
+      updatedAt: transaction.updatedAt,
     };
   }
 
@@ -193,5 +195,251 @@ export class TransactionService {
     });
 
     return { message: "Rollback Successful" };
+  }
+
+  //organizer service
+  async getTransactionsByOrganizerId(organizerId: number) {
+    try {
+      const transactions = await this.prisma.transaction.findMany({
+        where: {
+          event: {
+            organizerId: organizerId,
+          },
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+          event: {
+            select: {
+              name: true,
+              startDate: true,
+            },
+          },
+          ticketType: {
+            select: {
+              name: true,
+              price: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return transactions.map((transaction) => ({
+        id: transaction.id,
+        user: {
+          name: transaction.user.name,
+          email: transaction.user.email,
+        },
+        event: {
+          name: transaction.event.name,
+          startDate: transaction.event.startDate,
+        },
+        ticketType: {
+          name: transaction.ticketType.name,
+          price: transaction.ticketType.price,
+        },
+        quantity: transaction.quantity,
+        totalPrice: transaction.totalPrice,
+        status: transaction.status,
+        createdAt: transaction.createdAt,
+        paymentProof: transaction.paymentProof,
+      }));
+    } catch (error) {
+      console.error("Error fetching organizer transactions:", error);
+      throw new Error("Failed to fetch organizer transactions");
+    }
+  }
+
+  async getPendingTransactionsByOrganizerId(organizerId: number) {
+    try {
+      const pendingTransactions = await this.prisma.transaction.findMany({
+        where: {
+          event: {
+            organizerId: organizerId,
+          },
+          status: "WAITING_FOR_PAYMENT",
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+          event: {
+            select: {
+              name: true,
+            },
+          },
+          ticketType: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          updatedAt: "asc",
+        },
+      });
+
+      return pendingTransactions.map((transaction) => ({
+        id: transaction.id,
+        user: {
+          name: transaction.user.name,
+          email: transaction.user.email,
+        },
+        event: transaction.event.name,
+        ticketType: transaction.ticketType.name,
+        quantity: transaction.quantity,
+        totalPrice: transaction.totalPrice,
+        paymentProof: transaction.paymentProof,
+        updatedAt: transaction.updatedAt,
+      }));
+    } catch (error) {
+      console.error("Error fetching pending transactions:", error);
+      throw new Error("Failed to fetch pending transactions");
+    }
+  }
+
+  async getTransactionsSummaryByOrganizerId(organizerId: number) {
+    try {
+      const transactions = await this.prisma.transaction.findMany({
+        where: {
+          event: {
+            organizerId: organizerId,
+          },
+          status: "DONE",
+        },
+        include: {
+          event: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      const eventSummaries = transactions.reduce((acc, transaction) => {
+        const eventName = transaction.event.name;
+        if (!acc[eventName]) {
+          acc[eventName] = {
+            totalTransactions: 0,
+            totalRevenue: 0,
+            ticketsSold: 0,
+          };
+        }
+
+        acc[eventName].totalTransactions++;
+        acc[eventName].totalRevenue += transaction.totalPrice;
+        acc[eventName].ticketsSold += transaction.quantity;
+
+        return acc;
+      }, {} as Record<string, { totalTransactions: number; totalRevenue: number; ticketsSold: number }>);
+
+      const overallSummary = {
+        totalEvents: Object.keys(eventSummaries).length,
+        totalTransactions: transactions.length,
+        totalRevenue: transactions.reduce((sum, t) => sum + t.totalPrice, 0),
+        totalTicketsSold: transactions.reduce((sum, t) => sum + t.quantity, 0),
+      };
+
+      return {
+        overallSummary,
+        eventSummaries,
+      };
+    } catch (error) {
+      console.error("Error generating transactions summary:", error);
+      throw new Error("Failed to generate transactions summary");
+    }
+  }
+
+  async approveTransaction(transactionId: number, organizerId: number) {
+    try {
+      const transaction = await this.prisma.transaction.findFirst({
+        where: {
+          id: transactionId,
+          event: {
+            organizerId: organizerId,
+          },
+          status: "WAITING_FOR_ADMIN_CONFIRMATION",
+        },
+      });
+
+      if (!transaction) {
+        throw new Error("Transaction not found or not authorized");
+      }
+
+      const updatedTransaction = await this.prisma.transaction.update({
+        where: { id: transactionId },
+        data: {
+          status: "DONE",
+          updatedAt: new Date(),
+        },
+      });
+
+      return updatedTransaction;
+    } catch (error) {
+      console.error("Error approving transaction:", error);
+      throw new Error("Failed to approve transaction");
+    }
+  }
+
+  async rejectTransaction(
+    transactionId: number,
+    organizerId: number,
+    rejectionReason: string
+  ) {
+    try {
+      const transaction = await this.prisma.transaction.findFirst({
+        where: {
+          id: transactionId,
+          event: {
+            organizerId: organizerId,
+          },
+          status: "WAITING_FOR_ADMIN_CONFIRMATION",
+        },
+      });
+
+      if (!transaction) {
+        throw new Error("Transaction not found or not authorized");
+      }
+
+      // Update transaction status to REJECTED
+      const updatedTransaction = await this.prisma.transaction.update({
+        where: { id: transactionId },
+        data: {
+          status: "REJECTED",
+          updatedAt: new Date(),
+        },
+      });
+
+      await this.prisma.ticketType.update({
+        where: { id: transaction.ticketTypeId },
+        data: {
+          quantity: { increment: transaction.quantity },
+        },
+      });
+
+      if (transaction.pointsUsed > 0) {
+        await this.prisma.user.update({
+          where: { id: transaction.userId },
+          data: {
+            points: { increment: transaction.pointsUsed },
+          },
+        });
+      }
+
+      return updatedTransaction;
+    } catch (error) {
+      console.error("Error rejecting transaction:", error);
+      throw new Error("Failed to reject transaction");
+    }
   }
 }

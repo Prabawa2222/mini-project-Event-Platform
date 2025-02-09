@@ -28,6 +28,11 @@ const items = [
     icon: Ticket,
   },
   {
+    title: "Transactions",
+    url: "/organizer/dashboard/transactions",
+    icon: Ticket,
+  },
+  {
     title: "Profile",
     url: "/organizer/profile",
     icon: User,

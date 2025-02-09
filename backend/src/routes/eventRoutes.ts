@@ -15,6 +15,9 @@ router.post("/", (req, res) => events.createEvent(req, res)); // Create event
 router.post("/:slug/voucher", (req, res) =>
   events.createVoucherBySlug(req, res)
 );
+router.get("/organizer/:organizerId/events/search", (req, res) =>
+  events.searchOrganizerEvents(req, res)
+);
 router.patch("/:slug", (req, res) => events.updateEvent(req, res)); // Update event
 router.delete("/:slug", async (req, res) => {
   await events.softDeleteEvent(req, res);

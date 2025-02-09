@@ -64,6 +64,33 @@ export const eventService = {
     return data;
   },
 
+  async searchOrganizerEvents(
+    organizerId: string,
+    name?: string,
+    category?: string
+  ) {
+    const params = new URLSearchParams();
+    if (name && name.trim()) {
+      params.append("name", name.trim());
+    }
+    if (category && category.trim()) {
+      params.append("category", category.trim());
+    }
+
+    const response = await fetch(
+      `${
+        process.env.NEXTAUTH_URL
+      }/api/events/organizer/${organizerId}/events/search?${params.toString()}`
+    );
+    console.log("Calling API with URL:", response);
+
+    if (!response.ok) {
+      throw new Error("Failed to search events");
+    }
+
+    return response.json();
+  },
+
   async getEventBySlug(slug: string): Promise<EventFormData> {
     const response = await fetch(
       `${process.env.NEXTAUTH_URL}/api/events/${slug}`

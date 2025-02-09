@@ -11,10 +11,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/organizer/layout.js"
     ],
-    "/organizer/dashboard/events/page": [
+    "/organizer/dashboard/transactions/[transactionsId]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/organizer/dashboard/events/page.js"
+      "static/chunks/app/organizer/dashboard/transactions/[transactionsId]/page.js"
+    ],
+    "/organizer/dashboard/transactions/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/organizer/dashboard/transactions/page.js"
     ],
     "/api/auth/[...nextauth]/route": [
       "static/chunks/webpack.js",
@@ -26,35 +31,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/organizer/dashboard/page.js"
     ],
-    "/(auth)/layout": [
+    "/organizer/dashboard/events/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(auth)/layout.js"
+      "static/chunks/app/organizer/dashboard/events/page.js"
     ],
-    "/(auth)/login/page": [
+    "/organizer/dashboard/events/[slug]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(auth)/login/page.js"
+      "static/chunks/app/organizer/dashboard/events/[slug]/page.js"
     ],
-    "/organizer/dashboard/events/create/page": [
+    "/organizer/dashboard/events/edit/[slug]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/organizer/dashboard/events/create/page.js"
-    ],
-    "/organizer/profile/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/organizer/profile/page.js"
-    ],
-    "/organizer/settings/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/organizer/settings/page.js"
-    ],
-    "/_not-found/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
+      "static/chunks/app/organizer/dashboard/events/edit/[slug]/page.js"
     ]
   }
 }
