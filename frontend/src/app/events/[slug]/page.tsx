@@ -1,3 +1,6 @@
+"use client";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Footer from "@/components/karcis.com/common/Footer";
 import Navbar from "@/components/karcis.com/common/Navbar";
 import Banner from "@/components/karcis.com/events/banner.component";
@@ -7,7 +10,35 @@ import EventInfo from "@/components/karcis.com/events/eventInfo.component";
 import ShareButtons from "@/components/karcis.com/events/socmedShare.component";
 import BackButton from "@/components/karcis.com/UI/buttonBack";
 
-export default function getEventBySlug() {
+interface EventType {
+  imageUrl: string;
+  price: number;
+  name: string;
+  location: string;
+  startDate: string;
+  description: string;
+  availableSeats: number;
+  category: string;
+}
+
+export default function GetEventBySlug() {
+  const pathname = usePathname();
+  const slug = pathname.split("/").pop(); // Ambil slug dari URL
+  const [event, setEvent] = useState<EventType | null>(null);
+
+  useEffect(() => {
+    if (!slug) return;
+
+    fetch(`http://localhost:8000/api/events/${slug}`)
+      .then((res) => res.json())
+      .then((data: EventType) => setEvent(data))
+      .catch((err) => console.error("Error fetching event:", err));
+  }, [slug]);
+
+  if (!event) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div>
       <Navbar />
@@ -19,12 +50,12 @@ export default function getEventBySlug() {
           <div className="mb-4">
             <BackButton href="/events" />
           </div>
-          <Banner />
+          <Banner imageUrl={event.imageUrl} />
           <div className="w-[1100px] mt-20 flex justify-between">
-            <DetailEvent />
-            <BuyTicketCard href="/tickets/slug" />
+            <DetailEvent event={event} />
+            <BuyTicketCard price={event.price} href={`/tickets/${slug}`} />
           </div>
-          <EventInfo />
+          <EventInfo event={event} />
         </div>
       </div>
       <Footer />

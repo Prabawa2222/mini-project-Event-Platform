@@ -11,6 +11,7 @@ interface CardProps {
   category: string;
   isOnline: boolean;
   description: string;
+  slug: string; // Tambahkan slug
 }
 
 // Helper function to format date
@@ -40,6 +41,7 @@ const Card: React.FC<CardProps> = ({
   category,
   isOnline,
   description,
+  slug, // Gunakan slug dari API
 }) => {
   return (
     <div className="p-4">
@@ -95,7 +97,7 @@ const Card: React.FC<CardProps> = ({
           {/* View Details Button */}
           <div className="flex-grow flex items-end justify-end mt-2">
             <Link
-              href={`/events/${title.replace(/\s+/g, "-").toLowerCase()}`}
+              href={`/events/${slug}`} // Gunakan slug dari API
               className="text-sm text-blue-500 font-semibold hover:underline"
             >
               View Details

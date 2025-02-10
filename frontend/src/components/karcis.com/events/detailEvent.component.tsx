@@ -1,22 +1,31 @@
 import { FaMapMarkerAlt, FaRegCalendarAlt } from "react-icons/fa";
 
-export default function DetailEvent() {
+interface EventDetailsProps {
+  event: {
+    name: string;
+    location: string;
+    startDate: string | Date;
+    description: string;
+  };
+}
+
+export default function DetailEvent({ event }: EventDetailsProps) {
+  const shortDescription =
+    event.description.split(" ").slice(0, 20).join(" ") + "..."; // Menampilkan 10 kata pertama
+
   return (
     <div className="w-[550px] h-[200px] flex flex-col gap-2">
-      <h1 className="font-semibold text-3xl">Judul Event</h1>
+      <h1 className="font-semibold text-3xl">{event.name}</h1>
       <div className="flex items-center gap-4">
         <FaMapMarkerAlt />
-        <span>Gelora Bung Karno, Jakarta | Indonesia</span>
+        <span>{event.location}</span>
       </div>
       <div className="flex items-center gap-4">
         <FaRegCalendarAlt />
-        <span>25 Februari 2025</span>
+        <span>{new Date(event.startDate).toLocaleDateString()}</span>
       </div>
-      <p className="text-[#1B1B25] text-justify mt-3">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam,
-        tempora laborum excepturi ad quis necessitatibus recusandae est,
-        suscipit odit itaque aut sit iste voluptas quos. Perferendis tempora
-        nulla a fugit.
+      <p className="text-[#1B1B25] text-justify mt-3 mb-10">
+        {shortDescription}
       </p>
     </div>
   );

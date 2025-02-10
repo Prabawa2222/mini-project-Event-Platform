@@ -1,12 +1,16 @@
 import Image from "next/image";
 
-export default function Banner() {
+interface BannerProps {
+  imageUrl: string;
+}
+
+export default function Banner({ imageUrl }: BannerProps) {
   return (
     <div>
       <div className="w-[1100px] h-[360px] bg-[#DADAFB] bg-opacity-50 flex justify-center rounded-lg p-3">
         <div className="w-[1050px] h-[200px]">
           <Image
-            src="/banner.png"
+            src={imageUrl}
             alt="Banner Image"
             layout="responsive"
             width={1500}
