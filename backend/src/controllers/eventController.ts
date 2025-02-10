@@ -59,7 +59,7 @@ export class EventController {
   async getUpcomingEvents(req: Request, res: Response) {
     try {
       const events = await this.events.getUpcomingEvents();
-      res.send(events);
+      res.json(events);
     } catch (err: any) {
       res.status(404).json({ error: err.message });
     }

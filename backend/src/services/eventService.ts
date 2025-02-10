@@ -64,15 +64,18 @@ export class EventService {
         startDate: true,
         category: true,
         location: true,
+        imageUrl: true,
       },
     });
+
     return events.map((event) => ({
       name: event.name,
       price: event.price,
-      description: event.description.slice(0, 50) + "...", // Potong description
+      description: event.description.slice(0, 50) + "...",
       startDate: event.startDate,
       category: event.category,
       location: event.location,
+      imageUrl: event.imageUrl ?? "", // Gunakan string kosong jika null
     }));
   }
 
@@ -100,11 +103,13 @@ export class EventService {
       },
       select: {
         name: true,
+        slug: true, // Tambahkan slug di sini
         description: true,
         price: true,
         startDate: true,
         category: true,
         location: true,
+        imageUrl: true,
       },
       orderBy: {
         startDate: "asc",
@@ -113,11 +118,13 @@ export class EventService {
 
     return events.map((event) => ({
       name: event.name,
+      slug: event.slug, // Tambahkan slug ke hasil return
       price: event.price,
       description: event.description.slice(0, 50) + "...",
       startDate: event.startDate,
       category: event.category,
       location: event.location,
+      imageUrl: event.imageUrl ?? "",
     }));
   }
 

@@ -52,6 +52,7 @@ export interface EventPreview {
   startDate: Date;
   category: string;
   location: string;
+  imageUrl: string;
 }
 
 export interface UpdateEventDTO {
