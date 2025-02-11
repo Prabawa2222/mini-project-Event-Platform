@@ -21,10 +21,16 @@ interface EventType {
   category: string;
 }
 
+interface Transaction {
+  id: number;
+  totalPrice: number;
+}
+
 export default function GetEventBySlug() {
   const pathname = usePathname();
   const slug = pathname.split("/").pop(); // Ambil slug dari URL
   const [event, setEvent] = useState<EventType | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -53,7 +59,10 @@ export default function GetEventBySlug() {
           <Banner imageUrl={event.imageUrl} />
           <div className="w-[1100px] mt-20 flex justify-between">
             <DetailEvent event={event} />
-            <BuyTicketCard price={event.price} href={`/tickets/${slug}`} />
+            <BuyTicketCard
+              price={event.price}
+              href={`/events/tickets/${slug}`}
+            />
           </div>
           <EventInfo event={event} />
         </div>

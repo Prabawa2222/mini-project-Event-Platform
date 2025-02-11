@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import TicketCard from "./ticketCard.component";
 
-interface Ticket {
+export interface Ticket {
   id: number;
   name: string;
   description: string;
@@ -13,10 +13,11 @@ interface Ticket {
 
 const TicketCategory: React.FC<{
   setIsTicketValid: (valid: boolean) => void;
-}> = ({ setIsTicketValid }) => {
+  setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>; // Tambahkan setTickets sebagai prop
+  tickets: Ticket[]; // Tambahkan tickets sebagai prop agar state berasal dari parent
+}> = ({ setIsTicketValid, setTickets, tickets }) => {
   const [open, setOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState("");
-  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [ticketName, setTicketName] = useState("");
   const [ticketDescription, setTicketDescription] = useState("");
   const [ticketAmount, setTicketAmount] = useState(0);
@@ -30,6 +31,10 @@ const TicketCategory: React.FC<{
   const handleClose = () => {
     setOpen(false);
     setSelectedTicket("");
+    setTicketName("");
+    setTicketDescription("");
+    setTicketAmount(0);
+    setTicketPrice(0);
   };
 
   const handleSave = () => {
@@ -41,12 +46,14 @@ const TicketCategory: React.FC<{
       price: ticketPrice,
     };
 
-    setTickets([...tickets, newTicket]);
+    setTickets((prevTickets) => [...prevTickets, newTicket]); // Gunakan state updater dari parent
     handleClose();
   };
 
   const handleDelete = (id: number) => {
-    setTickets(tickets.filter((ticket) => ticket.id !== id));
+    setTickets((prevTickets) =>
+      prevTickets.filter((ticket) => ticket.id !== id)
+    );
   };
 
   useEffect(() => {
@@ -114,10 +121,10 @@ const TicketCategory: React.FC<{
               type="number"
               className="w-full p-2 border rounded"
               placeholder="0"
-              value={ticketAmount === 0 ? "" : ticketAmount} // Jika 0, kosongkan input
+              value={ticketAmount === 0 ? "" : ticketAmount}
               onChange={(e) => {
                 const value = e.target.value.replace(/^0+/, "");
-                setTicketAmount(value === "" ? 0 : Number(value)); // Pastikan set ke 0 jika kosong
+                setTicketAmount(value === "" ? 0 : Number(value));
               }}
             />
 

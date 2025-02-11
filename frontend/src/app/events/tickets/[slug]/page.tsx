@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import NavbarAfterLogin from "@/components/karcis.com/common/NavbarAfterLogin";
 import TicketCardTransaction from "@/components/karcis.com/tickets/cardTicket.component";
 import TicketSummary from "@/components/karcis.com/tickets/footerTicket";
@@ -8,17 +9,33 @@ import HeroTickets from "@/components/karcis.com/tickets/heroTickets";
 import BackButton from "@/components/karcis.com/UI/buttonBack";
 import SortButton from "@/components/karcis.com/UI/buttonSortby";
 
-const ticketOptions = [
-  { name: "Paket VIP", price: 371000 },
-  { name: "Paket Reguler", price: 150000 },
-  { name: "Paket Eksekutif", price: 500000 },
-];
+interface TicketOption {
+  id: number;
+  name: string;
+  price: number;
+}
 
 export default function getEventBySlug() {
+  const params = useParams(); // Mengambil parameter dari URL
+  const slug = params?.slug as string; // Pastikan slug tersedia sebagai string
+
+  const [tickets, setTickets] = useState<TicketOption[]>([]);
   const [selectedTickets, setSelectedTickets] = useState<{
     [key: string]: number;
   }>({});
-  const [sortedTickets, setSortedTickets] = useState(ticketOptions);
+  const [sortedTickets, setSortedTickets] = useState<TicketOption[]>([]);
+
+  useEffect(() => {
+    if (!slug) return;
+
+    fetch(`http://localhost:8000/api/events/${slug}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTickets(data.ticketTypes); // Menyesuaikan dengan response dari BE
+        setSortedTickets(data.ticketTypes);
+      })
+      .catch((err) => console.error("Error fetching tickets:", err));
+  }, [slug]);
 
   const handleQuantityChange = (name: string, quantity: number) => {
     setSelectedTickets((prev) => ({
@@ -33,7 +50,7 @@ export default function getEventBySlug() {
   );
   const totalPrice = Object.entries(selectedTickets).reduce(
     (acc, [name, qty]) => {
-      const ticket = ticketOptions.find((t) => t.name === name);
+      const ticket = tickets.find((t) => t.name === name);
       return acc + (ticket ? ticket.price * qty : 0);
     },
     0
@@ -41,19 +58,14 @@ export default function getEventBySlug() {
 
   const selectedTypes =
     Object.entries(selectedTickets)
-      .filter(([name, qty]) => qty > 0)
+      .filter(([_, qty]) => qty > 0)
       .map(([name, qty]) => `${name} x${qty}`)
       .join(", ") || "None";
 
-  // Sorting function
   const handleSort = (order: string) => {
-    const sorted = [...ticketOptions].sort((a, b) => {
-      if (order === "asc") {
-        return a.price - b.price;
-      } else {
-        return b.price - a.price;
-      }
-    });
+    const sorted = [...tickets].sort((a, b) =>
+      order === "asc" ? a.price - b.price : b.price - a.price
+    );
     setSortedTickets(sorted);
   };
 
@@ -62,7 +74,7 @@ export default function getEventBySlug() {
       <NavbarAfterLogin />
       <div className="w-[80%] min-h-screen flex flex-col mx-auto mt-40 gap-10">
         <div className="w-[30%] h-[50px] flex items-center gap-16">
-          <BackButton href="/events/:slug" />
+          <BackButton href="/events" />
           <span className="text-3xl font-semibold">Ticket Options</span>
         </div>
         <div className="w-[1304px] h-[250px]">
@@ -74,14 +86,15 @@ export default function getEventBySlug() {
         <h1 className="flex justify-center text-2xl font-semibold">
           Tickets Type
         </h1>
+
         <div className="w-full h-auto flex flex-col gap-10">
           <div className="flex justify-end">
             <SortButton onSort={handleSort} />
           </div>
           <div className="w-full h-auto flex flex-wrap justify-center gap-6">
-            {sortedTickets.map((ticket, index) => (
+            {sortedTickets.map((ticket) => (
               <TicketCardTransaction
-                key={index}
+                key={ticket.id}
                 ticket={{ ...ticket, onQuantityChange: handleQuantityChange }}
               />
             ))}

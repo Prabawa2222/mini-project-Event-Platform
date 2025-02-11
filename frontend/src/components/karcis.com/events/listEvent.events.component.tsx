@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Card from "@/components/karcis.com/UI/cardEvent";
+import SkeletonCard from "../UI/skeletonCardEvent";
 
 interface Event {
   id: number;
@@ -12,7 +13,7 @@ interface Event {
   category: string;
   isOnline: boolean;
   description: string;
-  slug: string; // Tambahkan slug
+  slug: string;
 }
 
 interface ListEventsPageProps {
@@ -36,6 +37,7 @@ export default function ListEventsPage({
 }: ListEventsPageProps) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const skeletonCount = 6; // Menentukan jumlah maksimum skeleton yang tampil
 
   useEffect(() => {
     async function fetchEvents() {
@@ -77,10 +79,7 @@ export default function ListEventsPage({
 
   const filteredEvents = events.filter((event) => {
     const eventDate = new Date(event.date);
-    const eventPrice = parseInt(
-      event.price.replace(/[^\d]/g, ""), // Menghapus karakter selain angka
-      10
-    );
+    const eventPrice = parseInt(event.price.replace(/[^\d]/g, ""), 10);
 
     const matchesSearchQuery =
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -109,7 +108,11 @@ export default function ListEventsPage({
       <h1 className="text-2xl font-bold text-gray-800 mb-6">List Events</h1>
 
       {loading ? (
-        <p className="text-gray-500">Loading events...</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {Array.from({ length: skeletonCount }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Card from "../UI/cardEvent";
 import Link from "next/link";
+import SkeletonCard from "../UI/skeletonCardEvent";
 
 interface Event {
   imageSrc: string;
@@ -71,7 +72,9 @@ export default function EventList({ title = "Upcoming Events" }) {
 
         {/* Loading State */}
         {loading ? (
-          <p className="text-center text-gray-500">Loading events...</p>
+          <p className="text-center text-gray-500">
+            <SkeletonCard />
+          </p>
         ) : (
           <div className="flex gap-5 overflow-x-auto">
             {events.map((event, index) => (

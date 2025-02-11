@@ -1,13 +1,51 @@
+"use client";
+
 import Image from "next/image";
 import { FaMapMarkerAlt, FaRegCalendarAlt } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+
+// Definisi tipe data untuk event
+interface Event {
+  name: string;
+  location: string;
+  startDate: string;
+  description: string;
+  imageUrl?: string;
+}
 
 export default function HeroTickets() {
+  const pathname = usePathname();
+  const slug = pathname.split("/").pop(); // Ambil slug dari URL
+  const [event, setEvent] = useState<Event | null>(null); // Gunakan tipe Event
+
+  useEffect(() => {
+    if (!slug) return;
+
+    const fetchEvent = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8000/api/events/${slug}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch event");
+        const data: Event = await response.json();
+        setEvent(data);
+      } catch (error) {
+        console.error("Error fetching event:", error);
+      }
+    };
+
+    fetchEvent();
+  }, [slug]);
+
+  if (!event) return <p>Loading...</p>;
+
   return (
     <div className="ml-[120px] flex gap-10">
       <div className="w-[780px] h-[250px]">
         <Image
-          src="/banner.png"
-          alt="Banner Image"
+          src={event.imageUrl || "/banner.png"}
+          alt={event.name}
           layout="responsive"
           width={1500}
           height={250}
@@ -15,18 +53,23 @@ export default function HeroTickets() {
         />
       </div>
       <div className="w-[370px] h-[220px] flex flex-col">
-        <h1 className="font-semibold text-2xl mb-4">Judul Event</h1>
+        <h1 className="font-semibold text-2xl mb-4">{event.name}</h1>
         <div className="flex items-center gap-4 mb-2 text-gray-600">
           <FaMapMarkerAlt />
-          <span>Gelora Bung Karno, Jakarta | Indonesia</span>
+          <span>{event.location}</span>
         </div>
         <div className="flex items-center gap-4 mb-2 text-gray-600">
           <FaRegCalendarAlt />
-          <span>25 Februari 2025</span>
+          <span>
+            {new Date(event.startDate).toLocaleDateString("id-ID", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}
+          </span>
         </div>
         <p className="text-justify mt-3 text-gray-600">
-          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quos in quae
-          a itaque iste tenetur veniam, aperiam exercitationem illum debitis?
+          {event.description.split(" ").slice(0, 30).join(" ")}
         </p>
       </div>
     </div>
