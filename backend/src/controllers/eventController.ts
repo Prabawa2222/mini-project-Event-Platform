@@ -18,12 +18,9 @@ export class EventController {
       if (err) {
         return res.status(400).json({ error: err.message });
       }
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
-      }
 
       try {
-        const eventData = JSON.parse(req.body.data);
+        const eventData = JSON.parse(req.body.data); // Pastikan parsing JSON benar
         const event = await this.events.createEvent(
           eventData.organizerId,
           eventData,

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { EventController } from "../controllers/eventController";
+import multer from "multer";
 
 const router = Router();
 const events = new EventController();

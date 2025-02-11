@@ -1,11 +1,6 @@
 import { searchEvents } from "../helpers/searchBar";
 import { slugGenerator } from "../helpers/slug.generator";
-import {
-  CreateEventDto,
-  CreateVoucherInput,
-  EventPreview,
-  UpdateEventDTO,
-} from "../types";
+import { CreateVoucherInput, EventPreview, UpdateEventDTO } from "../types";
 import { PrismaClient, Promotion } from "@prisma/client";
 import { ImageService } from "./utilService";
 
@@ -24,16 +19,13 @@ export class EventService {
     eventData: any,
     file?: Express.Multer.File
   ) {
-    let imageUrl = null;
-
-    if (file) {
-      imageUrl = await this.imageService.uploadImage(file);
-    }
+    let imageUrl = file ? await this.imageService.uploadImage(file) : null;
 
     const totalSeats = eventData.ticketTypes.reduce(
       (sum: number, ticket: any) => sum + ticket.quantity,
       0
     );
+
     return this.prisma.event.create({
       data: {
         name: eventData.name,
@@ -41,19 +33,20 @@ export class EventService {
         location: eventData.location,
         organizerId,
         price: 0,
-        startDate: new Date(eventData.date),
-        endDate: new Date(eventData.date),
+        startDate: new Date(eventData.startDate), // Ambil langsung dari eventData
+        endDate: new Date(eventData.endDate), // Ambil langsung dari eventData
         availableSeats: totalSeats,
-        category: "General",
+        category: eventData.category,
         slug: slugGenerator(eventData.name),
         imageUrl,
         ticketTypes: {
-          create: eventData.ticketTypes,
+          create: eventData.ticketTypes, // Pastikan sudah berbentuk array object
         },
       },
       include: { ticketTypes: true },
     });
   }
+
   // Home Page
   async getAllEvents(): Promise<EventPreview[]> {
     const events = await this.prisma.event.findMany({
