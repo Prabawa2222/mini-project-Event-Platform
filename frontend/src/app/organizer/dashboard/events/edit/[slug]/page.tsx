@@ -25,6 +25,7 @@ import {
 import { EventFormData } from "@/types/event";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect } from "react";
+import { Plus } from "lucide-react";
 
 const EventEditOrganizerPage = () => {
   const router = useRouter();
@@ -53,6 +54,7 @@ const EventEditOrganizerPage = () => {
       location: event?.location || "",
       imageUrl: event?.imageUrl || "",
       ticketTypes: event?.ticketTypes || [],
+      promotions: event?.promotions || [],
     },
   });
 
@@ -77,13 +79,32 @@ const EventEditOrganizerPage = () => {
             ...ticket,
             description: ticket.description || "",
           })) || [],
+        promotions:
+          event.promotions?.map((promo) => ({
+            ...promo,
+            startDate: new Date(promo.startDate).toISOString().slice(0, 16),
+            endDate: new Date(promo.endDate).toISOString().slice(0, 16),
+          })) || [],
       });
     }
   }, [event, form.reset]);
 
-  const { fields, append, remove } = useFieldArray({
+  const {
+    fields: ticketFields,
+    append: appendTicket,
+    remove: removeTicket,
+  } = useFieldArray({
     control: form.control,
     name: "ticketTypes",
+  });
+
+  const {
+    fields: promotionFields,
+    append: appendPromotion,
+    remove: removePromotion,
+  } = useFieldArray({
+    control: form.control,
+    name: "promotions",
   });
 
   const updateMutation = useMutation({
@@ -96,9 +117,34 @@ const EventEditOrganizerPage = () => {
   });
 
   const onSubmit = (data: EventFormData) => {
-    updateMutation.mutate(data);
-  };
+    // Clean up the data before sending
+    const cleanedData = {
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      startDate: new Date(data.startDate).toISOString(), // Add full ISO string
+      endDate: new Date(data.endDate).toISOString(), // Add full ISO string
+      availableSeats: data.availableSeats,
+      category: data.category,
+      location: data.location,
+      imageUrl: data.imageUrl,
+      ticketTypes: data.ticketTypes.map((ticket) => ({
+        name: ticket.name,
+        price: ticket.price,
+        quantity: ticket.quantity,
+        description: ticket.description,
+      })),
+      promotions: data.promotions.map((promo) => ({
+        discount: promo.discount,
+        maxUses: promo.maxUses,
+        startDate: new Date(promo.startDate).toISOString(),
+        endDate: new Date(promo.endDate).toISOString(),
+      })),
+    };
 
+    console.log("Cleaned data:", cleanedData);
+    updateMutation.mutate(cleanedData);
+  };
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -132,26 +178,6 @@ const EventEditOrganizerPage = () => {
                       <FormLabel>Event Name</FormLabel>
                       <FormControl>
                         <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Base Price</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -268,7 +294,7 @@ const EventEditOrganizerPage = () => {
                   </Button>
                 </div>
 
-                {fields.map((field, index) => (
+                {ticketFields.map((field, index) => (
                   <Card key={field.id}>
                     <CardContent className="pt-6">
                       <div className="grid grid-cols-2 gap-4">
@@ -348,6 +374,126 @@ const EventEditOrganizerPage = () => {
                         onClick={() => remove(index)}
                       >
                         Remove Ticket Type
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Promotions</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      appendPromotion({
+                        discount: 0,
+                        startDate: "",
+                        endDate: "",
+                        maxUses: undefined,
+                      })
+                    }
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Promotion
+                  </Button>
+                </div>
+
+                {promotionFields.map((field, index) => (
+                  <Card key={field.id}>
+                    <CardContent className="pt-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`promotions.${index}.discount`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Discount (%)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(Number(e.target.value))
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`promotions.${index}.maxUses`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Max Uses (Optional)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      e.target.value
+                                        ? Number(e.target.value)
+                                        : undefined
+                                    )
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`promotions.${index}.startDate`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Start Date</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="datetime-local"
+                                  {...field}
+                                  min={new Date().toISOString().slice(0, 16)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`promotions.${index}.endDate`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>End Date</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="datetime-local"
+                                  {...field}
+                                  min={new Date().toISOString().slice(0, 16)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="mt-4"
+                        onClick={() => removePromotion(index)}
+                      >
+                        Remove Promotion
                       </Button>
                     </CardContent>
                   </Card>

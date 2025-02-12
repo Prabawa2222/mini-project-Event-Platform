@@ -15,6 +15,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Image from "next/image";
+import {
+  CalendarIcon,
+  MapPinIcon,
+  StarIcon,
+  TagIcon,
+  TicketIcon,
+} from "lucide-react";
+import { formatDate } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 const EventDetailsPage = () => {
   const router = useRouter();
@@ -24,6 +33,11 @@ const EventDetailsPage = () => {
   const { data: event, isLoading } = useQuery({
     queryKey: ["event", eventSlug],
     queryFn: () => eventService.getEventBySlug(eventSlug),
+  });
+
+  const { data: attendeesData } = useQuery({
+    queryKey: ["eventAttendees", eventSlug],
+    queryFn: () => eventService.getEventAttendees(eventSlug),
   });
 
   if (isLoading) {
@@ -60,60 +74,202 @@ const EventDetailsPage = () => {
           <Table>
             <TableBody>
               <TableRow>
-                <TableHead>
+                <TableCell colSpan={2} className="p-5">
                   <Image
                     src={event.imageUrl}
-                    className="w-full"
+                    className="w-full h-[400px] object-cover rounded-lg shadow-md"
                     alt="image-event"
-                    width={100}
-                    height={100}
+                    width={980}
+                    height={400}
                   />
-                </TableHead>
+                </TableCell>
               </TableRow>
               <TableRow>
                 <TableHead className="w-[200px]">Title</TableHead>
-                <TableCell>{event.name}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableHead>Start Date</TableHead>
-                <TableCell>
-                  {new Date(event.startDate).toLocaleString()}
+                <TableCell className="font-medium text-lg">
+                  {event.name}
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableHead>End Date</TableHead>
-                <TableCell>
-                  {new Date(event.endDate).toLocaleString()}
+                <TableHead>Description</TableHead>
+                <TableCell className="text-gray-600">
+                  {event.description}
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableHead>Location</TableHead>
-                <TableCell>{event.location}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableHead>Category</TableHead>
-                <TableCell>{event.category}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableHead>Available Seats</TableHead>
-                <TableCell>{event.availableSeats}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableHead>Event ID</TableHead>
-                <TableCell>{event.id}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableHead>Ticket Type:</TableHead>
-                <TableCell colSpan={2}>
-                  {event.ticketTypes.map((ticket) => (
-                    <div key={ticket.id}>
-                      <strong>{ticket.name}</strong>: ${ticket.price} (
-                      {ticket.quantity} available)
+                <TableHead>Event Details</TableHead>
+                <TableCell>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <CalendarIcon className="w-4 h-4" />
+                      <span>
+                        Starts: {new Date(event.startDate).toLocaleString()}
+                      </span>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2">
+                      <CalendarIcon className="w-4 h-4" />
+                      <span>
+                        Ends: {new Date(event.endDate).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPinIcon className="w-4 h-4" />
+                      <span>{event.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <TagIcon className="w-4 h-4" />
+                      <span>{event.category}</span>
+                    </div>
+                  </div>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead>Ticket Types</TableHead>
+                <TableCell>
+                  <div className="grid grid-cols-2 gap-4">
+                    {event.ticketTypes.map((ticket) => (
+                      <div
+                        key={ticket.id}
+                        className="bg-gray-50 p-4 rounded-lg"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <TicketIcon className="w-4 h-4" />
+                          <span className="font-medium">{ticket.name}</span>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="text-green-600 font-medium">
+                            ${ticket.price}
+                          </div>
+                          <div className="text-gray-600">
+                            {ticket.quantity} available
+                          </div>
+                          {ticket.description && (
+                            <div className="text-gray-500">
+                              {ticket.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead>Promotions</TableHead>
+                <TableCell>
+                  {event.promotions && event.promotions.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      {event.promotions.map((promo) => (
+                        <div
+                          key={promo.id}
+                          className="bg-gray-50 p-4 rounded-lg"
+                        >
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium text-lg">
+                                {promo.discount}% OFF
+                              </span>
+                              <Badge variant="outline">{promo.code}</Badge>
+                            </div>
+                            <div className="text-sm space-y-1 text-gray-600">
+                              <div>
+                                Valid from: {formatDate(promo.startDate)}
+                              </div>
+                              <div>
+                                Valid until: {formatDate(promo.endDate)}
+                              </div>
+                              <div className="mt-2">
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-blue-600 h-2 rounded-full"
+                                    style={{
+                                      width: `${
+                                        (promo.currentUses / promo.maxUses) *
+                                        100
+                                      }%`,
+                                    }}
+                                  />
+                                </div>
+                                <div className="text-sm mt-1">
+                                  {promo.currentUses} of {promo.maxUses} used
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">No promotions available</p>
+                  )}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead>Reviews</TableHead>
+                <TableCell>
+                  {event.reviews?.length > 0 ? (
+                    <div className="space-y-4">
+                      {event.reviews.map((review) => (
+                        <div
+                          key={review.id}
+                          className="bg-gray-50 p-4 rounded-lg"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex gap-1">
+                              {[...Array(5)].map((_, index) => (
+                                <StarIcon
+                                  key={index}
+                                  className={`w-4 h-4 ${
+                                    index < review.rating
+                                      ? "fill-yellow-400"
+                                      : "fill-gray-200"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm text-gray-500">
+                              {formatDate(review.createdAt)}
+                            </span>
+                          </div>
+                          <p className="text-gray-600">{review.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">No reviews yet</p>
+                  )}
                 </TableCell>
               </TableRow>
             </TableBody>
+            <TableRow>
+              <TableHead>Attendees ({attendeesData?.total || 0})</TableHead>
+              <TableCell>
+                {attendeesData?.data && attendeesData.data.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    {attendeesData.data.map((attendee) => (
+                      <div
+                        key={`${attendee.userId}-${attendee.ticketType}`}
+                        className="bg-gray-50 p-4 rounded-lg flex items-center gap-4"
+                      >
+                        <h1>{attendee.name.charAt(0)}</h1>
+                        <div className="flex-1">
+                          <div className="font-medium">{attendee.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {attendee.ticketType} • {attendee.quantity}{" "}
+                            ticket(s)
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Purchased: {formatDate(attendee.purchaseDate)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No attendees yet</p>
+                )}
+              </TableCell>
+            </TableRow>
           </Table>
         </CardContent>
       </Card>

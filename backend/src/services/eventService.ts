@@ -34,6 +34,7 @@ export class EventService {
       (sum: number, ticket: any) => sum + ticket.quantity,
       0
     );
+
     return this.prisma.event.create({
       data: {
         name: eventData.name,
@@ -50,10 +51,25 @@ export class EventService {
         ticketTypes: {
           create: eventData.ticketTypes,
         },
+        promotions: eventData.promotions
+          ? {
+              create: eventData.promotions.map((promo: any) => ({
+                discount: promo.discount,
+                startDate: new Date(promo.startDate),
+                endDate: new Date(promo.endDate),
+                maxUses: promo.maxUses,
+                code: Math.random().toString(36).substring(2, 12).toUpperCase(),
+              })),
+            }
+          : undefined,
       },
-      include: { ticketTypes: true },
+      include: {
+        ticketTypes: true,
+        promotions: true,
+      },
     });
   }
+
   // Home Page
   async getAllEvents(): Promise<EventPreview[]> {
     const events = await this.prisma.event.findMany({
@@ -78,6 +94,49 @@ export class EventService {
     }));
   }
 
+  async getEventAttendees(slug: string) {
+    const event = await this.prisma.event.findUnique({
+      where: { slug },
+      include: {
+        transactions: {
+          where: {
+            status: "DONE",
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                profilePicture: true,
+              },
+            },
+            ticketType: {
+              select: {
+                name: true,
+                price: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!event) throw new Error("Event not found");
+
+    const attendees = event.transactions.map((transaction) => ({
+      userId: transaction.user.id,
+      name: transaction.user.name,
+      email: transaction.user.email,
+      profilePicture: transaction.user.profilePicture,
+      ticketType: transaction.ticketType.name,
+      quantity: transaction.quantity,
+      purchaseDate: transaction.createdAt,
+    }));
+
+    return attendees;
+  }
+
   // Detail Event Page
   async getEventBySlug(slug: string) {
     const event = await this.prisma.event.findUnique({
@@ -85,6 +144,10 @@ export class EventService {
       include: {
         ticketTypes: true,
         organizer: { select: { id: true, name: true } },
+        promotions: true,
+        reviews: {
+          take: 5,
+        },
       },
     });
     if (!event) throw new Error("Event not found");
@@ -124,13 +187,12 @@ export class EventService {
   }
 
   async updateEvent(slug: string, eventData: UpdateEventDTO) {
-    // If ticketTypes are provided, calculate totalSeats
     const totalSeats = eventData.ticketTypes
       ? eventData.ticketTypes.reduce((sum, ticket) => sum + ticket.quantity, 0)
       : undefined;
 
     return await this.prisma.event.update({
-      where: { slug: slug }, // Use slug as the unique identifier for the event
+      where: { slug: slug },
       data: {
         name: eventData.name,
         description: eventData.description,
@@ -143,13 +205,26 @@ export class EventService {
         slug: eventData.name ? slugGenerator(eventData.name) : undefined,
         ticketTypes: eventData.ticketTypes
           ? {
-              deleteMany: {}, // Delete old ticket types
-              create: eventData.ticketTypes, // Create new ticket types
+              deleteMany: {},
+              create: eventData.ticketTypes,
+            }
+          : undefined,
+        promotions: eventData.promotions
+          ? {
+              deleteMany: {}, // Delete existing promotions
+              create: eventData.promotions.map((promo: any) => ({
+                discount: promo.discount,
+                startDate: new Date(promo.startDate),
+                endDate: new Date(promo.endDate),
+                maxUses: promo.maxUses,
+                code: Math.random().toString(36).substring(2, 12).toUpperCase(),
+              })),
             }
           : undefined,
       },
       include: {
-        ticketTypes: true, // Include the ticket types in the result
+        ticketTypes: true,
+        promotions: true,
       },
     });
   }
@@ -180,6 +255,7 @@ export class EventService {
         location: true,
         category: true,
         availableSeats: true,
+        deletedAt: true,
       },
     });
 
@@ -191,6 +267,7 @@ export class EventService {
       location: event.location,
       category: event.category,
       capacity: event.availableSeats,
+      deleteAt: event.deletedAt,
     }));
   }
 

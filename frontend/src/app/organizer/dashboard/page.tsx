@@ -94,7 +94,7 @@ const DashboardOrganizerPage = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXTAUTH_URL}/api/analytics/organizer/1`
+          `${process.env.BASE_URL}/api/analytics/organizer/1`
         );
         const data: DashboardStatistics = await response.json();
         setStatistics(data);

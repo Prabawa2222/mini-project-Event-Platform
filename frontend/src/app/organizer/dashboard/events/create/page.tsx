@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, Plus, X } from "lucide-react";
 
 import Image from "next/image";
 import { eventService } from "@/lib/api/events";
@@ -108,6 +108,27 @@ const CreateEventPage = () => {
     }
   };
 
+  const addPromotion = () => {
+    const currentPromotions = form.getValues("promotions") || [];
+    form.setValue("promotions", [
+      ...currentPromotions,
+      {
+        discount: 0,
+        startDate: "",
+        endDate: "",
+        maxUses: undefined,
+      },
+    ]);
+  };
+
+  const removePromotion = (index: number) => {
+    const currentPromotions = form.getValues("promotions") || [];
+    form.setValue(
+      "promotions",
+      currentPromotions.filter((_, i) => i !== index)
+    );
+  };
+
   const onSubmit = async (data: CreateEventFormValues) => {
     console.log("Form submission started");
     setIsSubmitting(true);
@@ -130,7 +151,7 @@ const CreateEventPage = () => {
         category: data.category,
       };
       await eventService.createEvent(formattedData);
-      router.push("organizer/dashboard/events");
+      router.push("/organizer/dashboard/events");
     } catch (error) {
       console.error("Submit error:", error);
     }
@@ -399,6 +420,116 @@ const CreateEventPage = () => {
                     >
                       Remove
                     </Button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium">Promotions</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addPromotion}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Promotion
+                  </Button>
+                </div>
+                {(form.watch("promotions") || []).map((_, index) => (
+                  <div key={index} className="space-y-4 p-4 border rounded-lg">
+                    <div className="flex gap-4">
+                      <FormField
+                        control={form.control}
+                        name={`promotions.${index}.discount`}
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormLabel>Discount (%)</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="number"
+                                min="0"
+                                max="100"
+                                onChange={(e) =>
+                                  field.onChange(Number(e.target.value))
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name={`promotions.${index}.maxUses`}
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormLabel>Max Uses (Optional)</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="number"
+                                min="1"
+                                onChange={(e) =>
+                                  field.onChange(Number(e.target.value))
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="flex gap-4">
+                      <FormField
+                        control={form.control}
+                        name={`promotions.${index}.startDate`}
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormLabel>Start Date</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="datetime-local"
+                                min={new Date().toISOString().slice(0, 16)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name={`promotions.${index}.endDate`}
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormLabel>End Date</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="datetime-local"
+                                min={new Date().toISOString().slice(0, 16)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => removePromotion(index)}
+                      >
+                        Remove Promotion
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>

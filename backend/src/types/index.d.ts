@@ -19,6 +19,20 @@ export interface CreateUserDto {
   referralCode?: string;
 }
 
+export interface ForgotPasswordDto {
+  email: string;
+}
+
+export interface ResetPasswordDto {
+  token: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordDto {
+  oldPassword: string;
+  newPassword: string;
+}
+
 export interface UserResponse {
   id: number;
   email: string;
@@ -26,6 +40,23 @@ export interface UserResponse {
   role: UserRole;
   referralCode: string;
   points: number;
+  profilePicture?: string | null;
+}
+
+export interface GetProfileUserResponse {
+  id: number;
+  email: string;
+  name: string;
+  points: number;
+  profilePicture?: string | null;
+  referralCode: string;
+  activeCoupons: string;
+}
+
+export interface GetProfileOrganizerResponse {
+  id: number;
+  email: string;
+  name: string;
   profilePicture?: string | null;
 }
 
@@ -53,6 +84,7 @@ export interface EventPreview {
   startDate: Date;
   category?: EventCategory;
   location: string;
+  deleteAt?: Date;
 }
 
 export interface UpdateEventDTO {
@@ -70,6 +102,12 @@ export interface UpdateEventDTO {
     price: number;
     quantity: number;
     description?: string;
+  }[];
+  promotions?: {
+    discount: number;
+    startDate: Date;
+    endDate: Date;
+    maxUses?: number;
   }[];
 }
 
@@ -102,7 +140,7 @@ export interface TransactionRequest {
   quantity: number;
   pointsUsed: number;
   couponId?: number;
-  promotionId?: number;
+  promotionId?: string;
 }
 
 export interface CreateVoucherInput {
@@ -157,4 +195,9 @@ export interface UpcomingEvent {
   _count: {
     transactions: number;
   };
+}
+
+export interface TransactionWithImage {
+  transactionId: number;
+  imageUrl: string;
 }

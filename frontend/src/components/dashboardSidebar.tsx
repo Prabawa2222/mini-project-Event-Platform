@@ -12,9 +12,17 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Home, Menu, Settings, Ticket, User } from "lucide-react";
+import {
+  DollarSign,
+  Home,
+  LogOut,
+  Menu,
+  Settings,
+  Ticket,
+  User,
+} from "lucide-react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 const items = [
   {
@@ -30,7 +38,7 @@ const items = [
   {
     title: "Transactions",
     url: "/organizer/dashboard/transactions",
-    icon: Ticket,
+    icon: DollarSign,
   },
   {
     title: "Profile",
@@ -47,6 +55,10 @@ const items = [
 export function DashboardSidebar() {
   const { data: session } = useSession();
   const organizeName = session?.user?.name || "Organizer";
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/login" });
+  };
 
   return (
     <Sidebar>
@@ -69,6 +81,16 @@ export function DashboardSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="border-t pb-10">
+        <Button
+          variant="ghost"
+          className="w-full flex items-center gap-2 justify-start px-4 py-2 text-slate-600 hover:text-slate-700 hover:bg-red-50"
+          onClick={handleLogout}
+        >
+          <LogOut size={20} />
+          <span>Logout</span>
+        </Button>
+      </SidebarFooter>
     </Sidebar>
   );
 }

@@ -7,7 +7,6 @@ import { EventCategory } from "@prisma/client";
 
 export class EventController {
   private events = new EventService();
-  private imageService = new ImageService();
 
   async createEvent(req: Request, res: Response) {
     ImageService.upload(req, res, async (err) => {
@@ -52,6 +51,20 @@ export class EventController {
     try {
       const event = await this.events.getEventBySlug(String(req.params.slug));
       res.json(event);
+    } catch (err: any) {
+      res.status(404).json({ error: err.message });
+    }
+  }
+
+  async getEventAttendees(req: Request, res: Response) {
+    try {
+      const { slug } = req.params;
+      const attendees = await this.events.getEventAttendees(slug);
+      res.json({
+        message: "Event attendees retrieved successfully",
+        data: attendees,
+        total: attendees.length,
+      });
     } catch (err: any) {
       res.status(404).json({ error: err.message });
     }

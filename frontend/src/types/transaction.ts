@@ -27,18 +27,18 @@ export interface TransactionPreview {
   updatedAt: string;
 }
 
-// export interface TransactionDetails extends TransactionPreview {
-//   coupon?: {
-//     code: string;
-//     discount: number;
-//   };
-//   promotion?: {
-//     name: string;
-//     discount: number;
-//   };
-//   expiresAt: Date;
-//   rejectionReason?: string;
-// }
+export interface TransactionDetails extends TransactionPreview {
+  coupon?: {
+    code: string;
+    discount: number;
+  };
+  promotion?: {
+    name: string;
+    discount: number;
+  };
+  expiresAt: Date;
+  rejectionReason?: string;
+}
 
 export interface TransactionSummary {
   overallSummary: {

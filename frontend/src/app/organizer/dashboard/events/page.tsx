@@ -18,14 +18,15 @@ import EventTable from "@/components/dashboard/events/eventTable";
 import { EventPreview } from "@/types/event";
 import { useOrganizer } from "@/context/organizer/OrganizerContext";
 import { useDebounce } from "use-debounce";
+import { toast } from "@/hooks/use-toast";
+import { EVENT_CATEGORIES } from "@/lib/utils";
 
 const EventDashboardOrganizerPage = () => {
   const router = useRouter();
   const { organizerId } = useOrganizer();
+  const queryClient = useQueryClient();
   const [searchTerm, setsearchTerm] = useState("");
-
   const [selectedCategory, setSelectedCategory] = useState("");
-
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
   //const organizerId = "1";
@@ -47,17 +48,45 @@ const EventDashboardOrganizerPage = () => {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (slug: string) => eventService.deleteEvent(slug),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      toast({
+        title: "Event Deleted",
+        description: "the event has been successfully deleted",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete event. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleView = (event: EventPreview) => {
     router.push(`/organizer/dashboard/events/${event.slug}`);
   };
 
   const handleEdit = (event: EventPreview) => {
+    if (event.deletedAt) return;
     router.push(`/organizer/dashboard/events/edit/${event.slug}`);
   };
 
-  const handleDelete = (event: EventPreview) => {
-    // Implement delete functionality
-    console.log("Delete event:", event);
+  const handleDelete = async (event: EventPreview) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this event? This action cannot be undone."
+    );
+
+    if (confirmed) {
+      try {
+        await deleteMutation.mutateAsync(event.slug);
+      } catch (error) {
+        console.error("Error deleting event:", error);
+      }
+    }
   };
 
   return (
@@ -89,15 +118,11 @@ const EventDashboardOrganizerPage = () => {
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value=" ">All Categories</SelectItem>
-                <SelectItem value="MUSIC">Music</SelectItem>
-                <SelectItem value="SPORTS">Sports</SelectItem>
-                <SelectItem value="TECHNOLOGY">Technology</SelectItem>
-                <SelectItem value="BUSINESS">Business</SelectItem>
-                <SelectItem value="EDUCATION">Education</SelectItem>
-                <SelectItem value="ENTERTAINMENT">Entertainment</SelectItem>
-                <SelectItem value="GENERAL">General</SelectItem>
-                <SelectItem value="OTHER">Other</SelectItem>
+                {EVENT_CATEGORIES.map(({ value, label }) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </form>

@@ -11,11 +11,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/organizer/layout.js"
     ],
-    "/organizer/dashboard/transactions/[transactionsId]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/organizer/dashboard/transactions/[transactionsId]/page.js"
-    ],
     "/organizer/dashboard/transactions/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -25,11 +20,6 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/auth/[...nextauth]/route.js"
-    ],
-    "/organizer/dashboard/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/organizer/dashboard/page.js"
     ],
     "/organizer/dashboard/events/page": [
       "static/chunks/webpack.js",
@@ -41,10 +31,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/organizer/dashboard/events/[slug]/page.js"
     ],
-    "/organizer/dashboard/events/edit/[slug]/page": [
+    "/organizer/dashboard/transactions/[transactionsId]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/organizer/dashboard/events/edit/[slug]/page.js"
+      "static/chunks/app/organizer/dashboard/transactions/[transactionsId]/page.js"
+    ],
+    "/_not-found/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/_not-found/page.js"
     ]
   }
 }

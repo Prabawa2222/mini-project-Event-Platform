@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -13,11 +14,20 @@ import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
 interface EventTableProps {
-  events?: EventPreview[];
-  isLoading?: boolean;
-  onEdit?: (event: EventPreview) => void;
-  onDelete?: (event: EventPreview) => void;
-  onView?: (event: EventPreview) => void;
+  events: {
+    id: string;
+    slug: string;
+    title: string;
+    date: string;
+    location: string;
+    category: string;
+    capacity: number;
+    deleteAt?: string | null;
+  }[];
+  isLoading: boolean;
+  onView?: (event: any) => void;
+  onEdit?: (event: any) => void;
+  onDelete?: (event: any) => void;
 }
 
 const EventTable = ({
@@ -49,7 +59,14 @@ const EventTable = ({
             <TableCell>{event.location}</TableCell>
             <TableCell>{event.category}</TableCell>
             <TableCell>{event.capacity}</TableCell>
-            <TableCell className="space-x-2">
+            <TableCell>
+              {event.deleteAt ? (
+                <Badge variant="destructive">Deleted</Badge>
+              ) : (
+                <Badge variant="default">Active</Badge>
+              )}
+            </TableCell>
+            <TableCell className="space-x-1">
               <Button
                 variant="outline"
                 size="sm"
@@ -61,6 +78,10 @@ const EventTable = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onEdit && onEdit(event)}
+                disabled={Boolean(event.deleteAt)}
+                className={
+                  event.deleteAt ? "opacity-50 cursor-not-allowed" : ""
+                }
               >
                 Edit
               </Button>
@@ -68,6 +89,10 @@ const EventTable = ({
                 variant="destructive"
                 size="sm"
                 onClick={() => onDelete && onDelete(event)}
+                disabled={Boolean(event.deleteAt)}
+                className={
+                  event.deleteAt ? "opacity-50 cursor-not-allowed" : ""
+                }
               >
                 Delete
               </Button>

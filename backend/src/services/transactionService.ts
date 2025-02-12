@@ -1,10 +1,13 @@
-import { PrismaClient, TransactionStatus } from "@prisma/client";
-import { TransactionRequest } from "../types";
+import { PointsType, PrismaClient, TransactionStatus } from "@prisma/client";
+import { TransactionRequest, TransactionWithImage } from "../types";
+import { ImageService } from "./utilService";
 export class TransactionService {
   private prisma: PrismaClient;
+  private imageService: ImageService;
 
   constructor() {
     this.prisma = new PrismaClient();
+    this.imageService = new ImageService();
   }
 
   async createTransaction(data: TransactionRequest) {
@@ -18,56 +21,97 @@ export class TransactionService {
       promotionId,
     } = data;
 
-    const ticketType = await this.prisma.ticketType.findUnique({
-      where: { id: ticketTypeId },
-    });
-    if (!ticketType || ticketType.quantity < quantity)
-      throw new Error("Not enough tickets available");
-
-    // Calculate initial total price
-    let totalPrice = ticketType.price * quantity - pointsUsed;
-
-    // Apply promotion discount if a valid promotionId is provided
-    if (promotionId) {
-      const promotion = await this.prisma.promotion.findUnique({
-        where: { id: promotionId },
+    // Start a transaction to ensure both operations succeed or fail together
+    return await this.prisma.$transaction(async (prisma) => {
+      // Check user's points balance
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
       });
 
-      if (
-        promotion &&
-        promotion.eventId === eventId &&
-        new Date() <= promotion.endDate
-      ) {
-        const discountAmount = (promotion.discount / 100) * totalPrice;
-        totalPrice -= discountAmount;
-      } else {
-        throw new Error("Invalid or expired promotion");
+      if (!user) throw new Error("User not found");
+      if (user.points < pointsUsed) throw new Error("Insufficient points");
+
+      const ticketType = await prisma.ticketType.findUnique({
+        where: { id: ticketTypeId },
+      });
+      if (!ticketType || ticketType.quantity < quantity)
+        throw new Error("Not enough tickets available");
+
+      let promotionData = null;
+
+      // Calculate initial total price
+      let totalPrice = ticketType.price * quantity - pointsUsed;
+
+      // Update ticket quantity before creating transaction:
+      await prisma.ticketType.update({
+        where: { id: ticketTypeId },
+        data: {
+          quantity: { decrement: quantity },
+        },
+      });
+      // Apply promotion discount if a valid promotionId is provided
+      if (promotionId) {
+        const promotion = await prisma.promotion.findUnique({
+          where: { code: promotionId },
+        });
+
+        if (
+          promotion &&
+          promotion.eventId === eventId &&
+          new Date() <= promotion.endDate &&
+          (promotion.maxUses === null ||
+            promotion.currentUses < promotion.maxUses)
+        ) {
+          // Update the currentUses counter
+          await prisma.promotion.update({
+            where: { id: promotion.id },
+            data: { currentUses: { increment: 1 } },
+          });
+
+          const discountAmount = (promotion.discount / 100) * totalPrice;
+          totalPrice -= discountAmount;
+          promotionData = promotion; // Store the promotion data
+        } else {
+          throw new Error("Invalid, expired, or fully used promotion");
+        }
       }
-    }
 
-    const transaction = await this.prisma.transaction.create({
-      data: {
-        userId,
-        eventId,
-        ticketTypeId,
-        quantity,
-        pointsUsed,
-        couponId,
-        promotionId,
-        totalPrice,
-        status: "WAITING_FOR_PAYMENT",
-        expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
-      },
+      // Create the transaction
+      const transaction = await prisma.transaction.create({
+        data: {
+          userId,
+          eventId,
+          ticketTypeId,
+          quantity,
+          pointsUsed,
+          couponId,
+          promotionId: promotionData?.id,
+          totalPrice,
+          status: "WAITING_FOR_PAYMENT",
+          expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+        },
+      });
+
+      // Deduct points from user
+      if (pointsUsed > 0) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { points: { decrement: pointsUsed } },
+        });
+
+        // Create points history record
+        await prisma.pointsHistory.create({
+          data: {
+            userId,
+            points: -pointsUsed,
+            type: "USED",
+            expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+          },
+        });
+      }
+
+      return transaction;
     });
-
-    await this.prisma.ticketType.update({
-      where: { id: ticketTypeId },
-      data: {
-        quantity: ticketType.quantity - quantity,
-      },
-    });
-
-    return transaction;
   }
 
   async getAllTransaction() {
@@ -133,13 +177,42 @@ export class TransactionService {
     };
   }
 
-  async uploadPaymentProof(transactionId: number, paymentProof: string) {
-    const transaction = await this.prisma.transaction.update({
-      where: { id: transactionId },
-      data: { paymentProof, status: "WAITING_FOR_ADMIN_CONFIRMATION" },
-    });
+  async uploadPaymentProof(transactionId: number, file: Express.Multer.File) {
+    return await this.prisma.$transaction(async (prisma) => {
+      const transaction = await prisma.transaction.findUnique({
+        where: { id: transactionId },
+      });
 
-    return transaction;
+      if (!transaction) {
+        throw new Error("Transaction not found");
+      }
+
+      if (transaction.status !== "WAITING_FOR_PAYMENT") {
+        throw new Error("Transaction is not in waiting for payment status");
+      }
+
+      if (transaction.expiresAt < new Date()) {
+        throw new Error("Transaction has expired");
+      }
+
+      try {
+        const imageService = new ImageService();
+        const paymentProofUrl = await imageService.uploadImage(file);
+
+        const updatedTransaction = await prisma.transaction.update({
+          where: { id: transactionId },
+          data: {
+            paymentProof: paymentProofUrl,
+            status: "WAITING_FOR_ADMIN_CONFIRMATION",
+            updatedAt: new Date(),
+          },
+        });
+
+        return updatedTransaction;
+      } catch (error: any) {
+        throw new Error(`Failed to upload payment proof: ${error.message}`);
+      }
+    });
   }
 
   async expireTransaction() {
@@ -198,38 +271,55 @@ export class TransactionService {
   }
 
   //organizer service
-  async getTransactionsByOrganizerId(organizerId: number) {
+  async getTransactionsByOrganizerId(
+    organizerId: number,
+    page: number = 1,
+    limit: number = 10
+  ) {
     try {
-      const transactions = await this.prisma.transaction.findMany({
-        where: {
-          event: {
-            organizerId: organizerId,
-          },
-        },
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
+      const skip = (page - 1) * limit;
+
+      const [transactions, total] = await Promise.all([
+        this.prisma.transaction.findMany({
+          where: {
+            event: {
+              organizerId: organizerId,
             },
           },
-          event: {
-            select: {
-              name: true,
-              startDate: true,
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+            event: {
+              select: {
+                name: true,
+                startDate: true,
+              },
+            },
+            ticketType: {
+              select: {
+                name: true,
+                price: true,
+              },
             },
           },
-          ticketType: {
-            select: {
-              name: true,
-              price: true,
+          orderBy: {
+            createdAt: "desc",
+          },
+          skip,
+          take: limit,
+        }),
+        this.prisma.transaction.count({
+          where: {
+            event: {
+              organizerId: organizerId,
             },
           },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
+        }),
+      ]);
 
       return transactions.map((transaction) => ({
         id: transaction.id,
@@ -257,51 +347,81 @@ export class TransactionService {
     }
   }
 
-  async getPendingTransactionsByOrganizerId(organizerId: number) {
+  async getPendingTransactionsByOrganizerId(
+    organizerId: number,
+    page: number = 1,
+    limit: number = 10
+  ) {
     try {
-      const pendingTransactions = await this.prisma.transaction.findMany({
-        where: {
-          event: {
-            organizerId: organizerId,
-          },
-          status: "WAITING_FOR_PAYMENT",
-        },
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
-          event: {
-            select: {
-              name: true,
-            },
-          },
-          ticketType: {
-            select: {
-              name: true,
-            },
-          },
-        },
-        orderBy: {
-          updatedAt: "asc",
-        },
-      });
+      const skip = (page - 1) * limit;
 
-      return pendingTransactions.map((transaction) => ({
-        id: transaction.id,
-        user: {
-          name: transaction.user.name,
-          email: transaction.user.email,
+      const [pendingTransactions, total] = await Promise.all([
+        this.prisma.transaction.findMany({
+          where: {
+            event: {
+              organizerId: organizerId,
+            },
+            status: "WAITING_FOR_PAYMENT",
+          },
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+            event: {
+              select: {
+                name: true,
+              },
+            },
+            ticketType: {
+              select: {
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            updatedAt: "asc",
+          },
+          skip,
+          take: limit,
+        }),
+        this.prisma.transaction.count({
+          where: {
+            event: {
+              organizerId: organizerId,
+            },
+            status: "WAITING_FOR_PAYMENT",
+          },
+        }),
+      ]);
+
+      const transformedTransactions = pendingTransactions.map(
+        (transaction) => ({
+          id: transaction.id,
+          user: {
+            name: transaction.user.name,
+            email: transaction.user.email,
+          },
+          event: transaction.event.name,
+          ticketType: transaction.ticketType.name,
+          quantity: transaction.quantity,
+          totalPrice: transaction.totalPrice,
+          paymentProof: transaction.paymentProof,
+          updatedAt: transaction.updatedAt,
+        })
+      );
+
+      return {
+        data: transformedTransactions,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
         },
-        event: transaction.event.name,
-        ticketType: transaction.ticketType.name,
-        quantity: transaction.quantity,
-        totalPrice: transaction.totalPrice,
-        paymentProof: transaction.paymentProof,
-        updatedAt: transaction.updatedAt,
-      }));
+      };
     } catch (error) {
       console.error("Error fetching pending transactions:", error);
       throw new Error("Failed to fetch pending transactions");

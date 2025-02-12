@@ -12,6 +12,9 @@ router.get("/organizer", (req, res) => events.getOrganizerEvents(req, res));
 router.get("/up-coming", (req, res) => events.getUpcomingEvents(req, res));
 router.get("/:slug", (req, res) => events.getEventBySlug(req, res)); // Event details
 router.post("/", (req, res) => events.createEvent(req, res)); // Create event
+router.get("/:slug/attendees", (req, res) =>
+  events.getEventAttendees(req, res)
+);
 router.post("/:slug/voucher", (req, res) =>
   events.createVoucherBySlug(req, res)
 );

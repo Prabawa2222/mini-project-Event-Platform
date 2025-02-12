@@ -4,6 +4,16 @@ export interface TicketType {
   price: number;
   quantity: number;
   eventId: number;
+  description: string;
+}
+
+export interface Review {
+  id: number;
+  userId: number;
+  eventId: number;
+  rating: number;
+  comment: string;
+  createdAt: string;
 }
 
 export interface EventFormData {
@@ -25,6 +35,17 @@ export interface EventFormData {
     id: number;
     name: string;
   };
+  reviews?: Review[];
+  promotions?: {
+    discount: number;
+    startDate: string;
+    endDate: string;
+    maxUses?: number;
+  }[];
+}
+
+export interface EventDetails extends EventFormData {
+  reviews: Review[];
 }
 
 export interface EventPreview {
@@ -35,6 +56,7 @@ export interface EventPreview {
   startDate: Date;
   category: string;
   location: string;
+  deletedAt?: Date;
 }
 
 export interface CreateEventDto {

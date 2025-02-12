@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/dataTable";
@@ -14,22 +15,39 @@ import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import React, { useState } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const TransactionsOrganizerPage = () => {
   const { organizerId } = useOrganizer();
+  const [page, setPage] = useState(1);
+  const [limit] = useState(5);
 
   const { data: transactions, isLoading: isLoadingTransactions } = useQuery({
-    queryKey: ["transactions", organizerId],
+    queryKey: ["transactions", organizerId, page],
     queryFn: () =>
-      transactionService.getTransactionsByOrganizerId(organizerId as string),
+      transactionService.getTransactionsByOrganizerId(
+        organizerId as string,
+        page,
+        limit
+      ),
     enabled: !!organizerId,
   });
 
   const { data: pendingTransactions, isLoading: isLoadingPending } = useQuery({
-    queryKey: ["pendingTransactions", organizerId],
+    queryKey: ["pendingTransactions", organizerId, page],
     queryFn: () =>
       transactionService.getPendingTransactionsByOrganizerId(
-        organizerId as string
+        organizerId as string,
+        page,
+        limit
       ),
     enabled: !!organizerId,
   });
@@ -43,6 +61,9 @@ const TransactionsOrganizerPage = () => {
     enabled: !!organizerId,
   });
 
+  console.log("All Transactions data:", transactions);
+  console.log("Pending Transactions data:", pendingTransactions);
+
   const isLoading =
     isLoadingTransactions || isLoadingPending || isLoadingSummary;
 
@@ -53,6 +74,10 @@ const TransactionsOrganizerPage = () => {
       </div>
     );
   }
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
   return (
     <Card className="p-6 space-y-6 w-[980px] mx-8">
@@ -157,38 +182,146 @@ const TransactionsOrganizerPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions?.map((transaction) => (
-                      <tr key={transaction.id} className="border-b">
-                        <td className="p-4">#{transaction.id}</td>
-                        <td className="p-4">{transaction.user.name}</td>
-                        <td className="p-4">{transaction.event.name}</td>
-                        <td className="p-4">{transaction.ticketType.name}</td>
-                        <td className="p-4">{transaction.quantity}</td>
-                        <td className="p-4">
-                          ${transaction.totalPrice.toLocaleString()}
-                        </td>
-                        <td className="p-4">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(
-                              transaction.status
-                            )}`}
-                          >
-                            {transaction.status?.replace(/_/g, " ")}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <Button variant="outline" size="sm" asChild>
-                            <Link
-                              href={`/organizer/dashboard/transactions/${transaction.id}`}
+                    {transactions &&
+                      transactions.map((transaction) => (
+                        <tr key={transaction.id} className="border-b">
+                          <td className="p-4">#{transaction.id}</td>
+                          <td className="p-4">{transaction.user.name}</td>
+                          <td className="p-4">{transaction.event.name}</td>
+                          <td className="p-4">{transaction.ticketType.name}</td>
+                          <td className="p-4">{transaction.quantity}</td>
+                          <td className="p-4">
+                            ${transaction.totalPrice.toLocaleString()}
+                          </td>
+                          <td className="p-4">
+                            <Badge
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(
+                                transaction.status
+                              )}`}
                             >
-                              View Details
-                            </Link>
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
+                              {transaction.status?.replace(/_/g, " ")}
+                            </Badge>
+                          </td>
+                          <td className="p-4">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link
+                                href={`/organizer/dashboard/transactions/${transaction.id}`}
+                              >
+                                View Details
+                              </Link>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="mt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => handlePageChange(page - 1)}
+                        className={
+                          page === 1
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+
+                    {/* First Page */}
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => handlePageChange(1)}
+                        isActive={page === 1}
+                      >
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+
+                    {/* Show ellipsis if there are many pages */}
+                    {page > 3 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+
+                    {/* Current page and surrounding pages */}
+                    {page > 2 && (
+                      <PaginationItem>
+                        <PaginationLink
+                          onClick={() => handlePageChange(page - 1)}
+                        >
+                          {page - 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )}
+
+                    {page !== 1 &&
+                      page !==
+                        Math.ceil((transactions?.length || 0) / limit) && (
+                        <PaginationItem>
+                          <PaginationLink
+                            onClick={() => handlePageChange(page)}
+                            isActive={true}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )}
+
+                    {page <
+                      Math.ceil((transactions?.length || 0) / limit) - 1 && (
+                      <PaginationItem>
+                        <PaginationLink
+                          onClick={() => handlePageChange(page + 1)}
+                        >
+                          {page + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )}
+
+                    {/* Show ellipsis if there are many pages */}
+                    {page <
+                      Math.ceil((transactions?.length || 0) / limit) - 2 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+
+                    {/* Last Page */}
+                    {Math.ceil((transactions?.length || 0) / limit) > 1 && (
+                      <PaginationItem>
+                        <PaginationLink
+                          onClick={() =>
+                            handlePageChange(
+                              Math.ceil((transactions?.length || 0) / limit)
+                            )
+                          }
+                          isActive={
+                            page ===
+                            Math.ceil((transactions?.length || 0) / limit)
+                          }
+                        >
+                          {Math.ceil((transactions?.length || 0) / limit)}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => handlePageChange(page + 1)}
+                        className={
+                          !transactions || transactions.length < limit
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </div>
             </CardContent>
           </Card>
@@ -222,37 +355,143 @@ const TransactionsOrganizerPage = () => {
                       <th className="h-12 px-4 text-left align-middle font-medium">
                         Total Price
                       </th>
-
                       <th className="h-12 px-4 text-left align-middle font-medium">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingTransactions?.map((transaction) => (
-                      <tr key={transaction.id} className="border-b">
-                        <td className="p-4">#{transaction.id}</td>
-                        <td className="p-4">{transaction.user.name}</td>
-                        <td className="p-4">{transaction.event}</td>
-                        <td className="p-4">{transaction.ticketType}</td>
-                        <td className="p-4">{transaction.quantity}</td>
-                        <td className="p-4">
-                          ${transaction.totalPrice.toLocaleString()}
-                        </td>
-
-                        <td className="p-4">
-                          <Button variant="outline" size="sm" asChild>
-                            <Link
-                              href={`/organizer/dashboard/transactions/${transaction.id}`}
-                            >
-                              View Details
-                            </Link>
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
+                    {pendingTransactions &&
+                      pendingTransactions.data?.map((transaction) => (
+                        <tr key={transaction.id} className="border-b">
+                          <td className="p-4">#{transaction.id}</td>
+                          <td className="p-4">{transaction.user.name}</td>
+                          <td className="p-4">{transaction.event}</td>
+                          <td className="p-4">{transaction.ticketType}</td>
+                          <td className="p-4">{transaction.quantity}</td>
+                          <td className="p-4">
+                            ${transaction.totalPrice.toLocaleString()}
+                          </td>
+                          <td className="p-4">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link
+                                href={`/organizer/dashboard/transactions/${transaction.id}`}
+                              >
+                                View Details
+                              </Link>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="mt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => handlePageChange(page - 1)}
+                        className={
+                          page === 1
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+
+                    {/* First Page */}
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => handlePageChange(1)}
+                        isActive={page === 1}
+                      >
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+
+                    {/* Show ellipsis if there are many pages */}
+                    {page > 3 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+
+                    {/* Current page and surrounding pages */}
+                    {page > 2 && (
+                      <PaginationItem>
+                        <PaginationLink
+                          onClick={() => handlePageChange(page - 1)}
+                        >
+                          {page - 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )}
+
+                    {page !== 1 &&
+                      page !==
+                        Math.ceil((transactions?.length || 0) / limit) && (
+                        <PaginationItem>
+                          <PaginationLink
+                            onClick={() => handlePageChange(page)}
+                            isActive={true}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )}
+
+                    {page <
+                      Math.ceil((transactions?.length || 0) / limit) - 1 && (
+                      <PaginationItem>
+                        <PaginationLink
+                          onClick={() => handlePageChange(page + 1)}
+                        >
+                          {page + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )}
+
+                    {/* Show ellipsis if there are many pages */}
+                    {page <
+                      Math.ceil((transactions?.length || 0) / limit) - 2 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+
+                    {/* Last Page */}
+                    {Math.ceil((transactions?.length || 0) / limit) > 1 && (
+                      <PaginationItem>
+                        <PaginationLink
+                          onClick={() =>
+                            handlePageChange(
+                              Math.ceil((transactions?.length || 0) / limit)
+                            )
+                          }
+                          isActive={
+                            page ===
+                            Math.ceil((transactions?.length || 0) / limit)
+                          }
+                        >
+                          {Math.ceil((transactions?.length || 0) / limit)}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => handlePageChange(page + 1)}
+                        className={
+                          !transactions || transactions.length < limit
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </div>
             </CardContent>
           </Card>

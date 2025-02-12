@@ -8,24 +8,26 @@ datasource db {
 }
 
 model User {
-  id             Int             @id @default(autoincrement())
-  email          String          @unique
-  password       String
-  role           UserRole        @default(CUSTOMER)
-  referralCode   String          @unique
-  referredBy     String?
-  points         Int             @default(0)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  name           String
-  profilePicture String?
-  coupons        Coupon[]
-  events         Event[]         @relation("EventOrganizers")
-  pointsHistory  PointsHistory[]
-  reviews        Review[]
-  transactions   Transaction[]
-  referrer       User?           @relation("UserReferrals", fields: [referredBy], references: [referralCode])
-  referrals      User[]          @relation("UserReferrals")
+  id               Int             @id @default(autoincrement())
+  email            String          @unique
+  password         String
+  role             UserRole        @default(CUSTOMER)
+  referralCode     String          @unique
+  referredBy       String?
+  points           Int             @default(0)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  name             String
+  profilePicture   String?
+  coupons          Coupon[]
+  events           Event[]         @relation("EventOrganizers")
+  pointsHistory    PointsHistory[]
+  reviews          Review[]
+  transactions     Transaction[]
+  referrer         User?           @relation("UserReferrals", fields: [referredBy], references: [referralCode])
+  referrals        User[]          @relation("UserReferrals")
+  resetToken       String?         @db.Text
+  resetTokenExpiry DateTime?
 }
 
 model PointsHistory {

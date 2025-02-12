@@ -10,16 +10,13 @@ export const transactionService = {
   async createTransaction(
     data: CreateTransactionDto
   ): Promise<TransactionDetails> {
-    const response = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/transaction`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    );
+    const response = await fetch(`${process.env.BASE_URL}/api/transaction`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -40,7 +37,7 @@ export const transactionService = {
     }
 
     const response = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/transaction/${transactionId}/payment-proof`,
+      `${process.env.BASE_URL}/api/transaction/${transactionId}/payment-proof`,
       {
         method: "PATCH",
         body: formData,
@@ -54,29 +51,51 @@ export const transactionService = {
   },
 
   async getTransactionsByOrganizerId(
-    organizerId: string
+    organizerId: string,
+    page: number = 1,
+    limit: number = 10
   ): Promise<TransactionPreview[]> {
-    const response = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/transaction/organizer/${organizerId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    // Note: Return type is array now
+    try {
+      console.log(
+        "Fetching transactions for organizer:",
+        organizerId,
+        "page:",
+        page,
+        "limit:",
+        limit
+      );
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch transactions");
+      const response = await fetch(
+        `${process.env.BASE_URL}/api/transaction/organizer/${organizerId}?page=${page}&limit=${limit}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch transactions");
+      }
+
+      const data = await response.json();
+      console.log("Received transactions:", data);
+      return data; // Return the array directly
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      throw error;
     }
-    return response.json();
   },
 
   async getPendingTransactionsByOrganizerId(
-    organizerId: string
+    organizerId: string,
+    page: number = 1,
+    limit: number = 10
   ): Promise<TransactionPreview[]> {
     const response = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/transaction/organizer/${organizerId}/pending`,
+      `${process.env.BASE_URL}/api/transaction/organizer/${organizerId}/pending?page=${page}&limit=${limit}`,
       {
         method: "GET",
         headers: {
@@ -95,7 +114,7 @@ export const transactionService = {
     organizerId: string
   ): Promise<TransactionSummary> {
     const response = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/transaction/organizer/${organizerId}/summary`,
+      `${process.env.BASE_URL}/api/transaction/organizer/${organizerId}/summary`,
       {
         method: "GET",
         headers: {
@@ -111,7 +130,7 @@ export const transactionService = {
   },
 
   async getTransactionById(transactionId: number): Promise<TransactionDetails> {
-    const url = `${process.env.NEXTAUTH_URL}/api/transaction/${transactionId}`;
+    const url = `${process.env.BASE_URL}/api/transaction/${transactionId}`;
     console.log("Fetching from URL:", url);
 
     try {
@@ -138,7 +157,7 @@ export const transactionService = {
     organizerId: string
   ): Promise<TransactionDetails> {
     const response = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/transaction/${transactionId}/approve`,
+      `${process.env.BASE_URL}/api/transaction/${transactionId}/approve`,
       {
         method: "POST",
         headers: {
@@ -160,7 +179,7 @@ export const transactionService = {
     rejectionReason: string
   ): Promise<TransactionDetails> {
     const response = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/transaction/${transactionId}/reject`,
+      `${process.env.BASE_URL}/api/transaction/${transactionId}/reject`,
       {
         method: "POST",
         headers: {
@@ -177,15 +196,12 @@ export const transactionService = {
   },
 
   async getAllTransactions(): Promise<TransactionPreview[]> {
-    const response = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/transaction`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await fetch(`${process.env.BASE_URL}/api/transaction`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
       throw new Error("Failed to fetch all transactions");
@@ -197,7 +213,7 @@ export const transactionService = {
     transactionId: number
   ): Promise<{ message: string }> {
     const response = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/transaction/rollback/${transactionId}`,
+      `${process.env.BASE_URL}/api/transaction/rollback/${transactionId}`,
       {
         method: "POST",
         headers: {
@@ -214,7 +230,7 @@ export const transactionService = {
 
   async updateStatuses(): Promise<{ message: string }> {
     const response = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/transaction/update-statuses`,
+      `${process.env.BASE_URL}/api/transaction/update-statuses`,
       {
         method: "POST",
         headers: {
