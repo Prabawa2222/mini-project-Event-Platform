@@ -1,8 +1,10 @@
 "use client";
 import Image from "next/image";
 import SearchBar from "../UI/searchBar";
+import { useState } from "react";
 
 export default function HomeHero() {
+  const [setSearchQuery] = useState("");
   return (
     <div className="w-full pt-[74px] relative">
       {/* Hero Section */}

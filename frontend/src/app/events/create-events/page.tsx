@@ -14,6 +14,7 @@ interface EventData {
   endDate: string;
   location: string;
   description: string;
+  organizerId: number;
   image?: File;
 }
 
@@ -33,16 +34,7 @@ export default function CreateEvents() {
       const formData = new FormData();
       formData.append(
         "data",
-        JSON.stringify({
-          name: eventData.eventName, // Sesuaikan nama field
-          category: eventData.category,
-          startDate: eventData.startDate, // Pastikan format sudah valid
-          endDate: eventData.endDate,
-          location: eventData.location,
-          description: eventData.description,
-          organizerId: 1, // Bisa diambil dari state/auth jika dinamis
-          ticketTypes: tickets, // Langsung array, tidak pakai JSON.stringify
-        })
+        JSON.stringify({ ...eventData, ticketTypes: tickets, organizerId: 1 })
       );
 
       if (eventData.image) {
@@ -52,6 +44,9 @@ export default function CreateEvents() {
       const eventResponse = await fetch("http://localhost:8000/api/events", {
         method: "POST",
         body: formData,
+        headers: {
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE}`,
+        },
       });
 
       if (!eventResponse.ok) throw new Error("Gagal membuat event");

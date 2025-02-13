@@ -4,7 +4,7 @@ import NavbarAfterLogin from "@/components/karcis.com/common/NavbarAfterLogin";
 import FinalDetailTransaction from "@/components/karcis.com/transactions/finalDetailTrasanction.component";
 import PaymentPlatform from "@/components/karcis.com/transactions/paymentMethod.component";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 export default function PaymentProcesses() {
   const [paymentStatus, setPaymentStatus] = useState<string>(
@@ -13,6 +13,9 @@ export default function PaymentProcesses() {
   const [timeLeft, setTimeLeft] = useState<number>(5 * 60 * 60); // 2 hours in seconds
   const [deadline, setDeadline] = useState<string>("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const ticketsQuery = searchParams.get("tickets");
+  const selectedTickets = ticketsQuery ? JSON.parse(ticketsQuery) : {};
 
   const updateDeadline = () => {
     const now = new Date();
@@ -62,6 +65,39 @@ export default function PaymentProcesses() {
       .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  const { slug } = useParams();
+  const [eventData, setEventData] = useState<{
+    name: string;
+    location: string;
+    startDate: string;
+    imageUrl: string;
+    ticketTypes: { name: string; price: number }[];
+  }>({
+    name: "",
+    location: "",
+    startDate: "",
+    imageUrl: "",
+    ticketTypes: [],
+  });
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8000/api/events/${slug}`
+        );
+        const data = await response.json();
+        setEventData(data.event || data);
+      } catch (error) {
+        console.error("Failed to fetch event data", error);
+      }
+    };
+
+    if (slug) {
+      fetchEvent();
+    }
+  }, [slug]);
+
   return (
     <div className="w-full h-screen flex flex-col gap-20">
       <NavbarAfterLogin />
@@ -109,10 +145,10 @@ export default function PaymentProcesses() {
       </div>
       <div className="w-[80%] mx-[165px] flex gap-10">
         <div className="w-[50%]">
-          <PaymentPlatform setPaymentStatus={setPaymentStatus} />
-        </div>
-        <div className="w-[50%]">
-          <FinalDetailTransaction />
+          <FinalDetailTransaction
+            eventData={eventData}
+            selectedTickets={selectedTickets}
+          />
         </div>
       </div>
     </div>

@@ -65,34 +65,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     setEventData,
   ]);
 
-  const handleSubmit = async () => {
-    const formData = new FormData();
-    formData.append("name", eventName);
-    formData.append("category", category);
-    formData.append("startDate", startDate);
-    formData.append("endDate", endDate);
-    formData.append("location", location);
-    formData.append("description", description);
-    if (selectedFile) {
-      formData.append("image", selectedFile);
-    }
-
-    try {
-      const response = await fetch("http://localhost:8000/api/events", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create event");
-      }
-      const result = await response.json();
-      console.log("Event Created:", result);
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
   return (
     <div className="w-[50%] mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="relative w-full h-72 bg-gray-200 flex flex-col items-center justify-center">
@@ -205,13 +177,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
             className="w-full px-4 py-2 border rounded-md"
           ></textarea>
         </div>
-
-        <button
-          onClick={handleSubmit}
-          className="mt-6 w-full bg-blue-600 text-white px-4 py-2 rounded-md"
-        >
-          Submit Event
-        </button>
       </div>
     </div>
   );

@@ -31,7 +31,7 @@ export default function Navbar() {
 
         <div className="flex gap-4">
           <Link
-            href="#"
+            href="/login"
             className="w-[85px] h-[45px] p-1 flex items-center justify-center border-[2px] border-[#4F4CEE] rounded-md text-[#4F4CEE] font-medium"
           >
             Sign In

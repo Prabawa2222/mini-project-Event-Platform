@@ -1,9 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useParams, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
-const FormTransaction: React.FC = () => {
+interface FormTransactionProps {
+  selectedTickets: { [key: string]: number };
+}
+
+const FormTransaction: React.FC<FormTransactionProps> = ({
+  selectedTickets,
+}) => {
+  const { slug } = useParams(); // Mengambil slug dari URL
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -24,6 +35,19 @@ const FormTransaction: React.FC = () => {
       [e.target.name]: e.target.value,
     });
   };
+
+  const handleProceed = () => {
+    if (!isFormValid) return;
+
+    router.push(
+      `/events/transactions/${slug}/transaction-summary?tickets=${encodeURIComponent(
+        JSON.stringify(selectedTickets)
+      )}`
+    );
+  };
+
+  // Konversi selectedTickets ke JSON string agar bisa dikirim sebagai query parameter
+  const ticketsQuery = encodeURIComponent(JSON.stringify(selectedTickets));
 
   return (
     <div className="grid grid-cols-2 gap-4 p-6">
@@ -84,18 +108,17 @@ const FormTransaction: React.FC = () => {
 
       {/* Tombol Submit */}
       <div className="col-span-2 flex justify-center mt-4">
-        <Link href="transactions/payment-methods">
-          <button
-            className={`px-6 py-2 text-white rounded-md transition-all duration-300 ${
-              isFormValid
-                ? "bg-[#4F4CEE] hover:opacity-90 hover:scale-105 hover:shadow-lg"
-                : "bg-[#DADAFB] cursor-not-allowed"
-            }`}
-            disabled={!isFormValid}
-          >
-            Continue to Payment
-          </button>
-        </Link>
+        <button
+          onClick={handleProceed}
+          className={`px-6 py-2 text-white rounded-md transition-all duration-300 ${
+            isFormValid
+              ? "bg-[#4F4CEE] hover:opacity-90 hover:scale-105 hover:shadow-lg"
+              : "bg-[#DADAFB] cursor-not-allowed"
+          }`}
+          disabled={!isFormValid}
+        >
+          Continue to Payment
+        </button>
       </div>
     </div>
   );

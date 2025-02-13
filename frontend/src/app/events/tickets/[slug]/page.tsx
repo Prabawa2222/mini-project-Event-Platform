@@ -16,8 +16,8 @@ interface TicketOption {
 }
 
 export default function getEventBySlug() {
-  const params = useParams(); // Mengambil parameter dari URL
-  const slug = params?.slug as string; // Pastikan slug tersedia sebagai string
+  const params = useParams();
+  const slug = params?.slug as string;
 
   const [tickets, setTickets] = useState<TicketOption[]>([]);
   const [selectedTickets, setSelectedTickets] = useState<{
@@ -31,7 +31,7 @@ export default function getEventBySlug() {
     fetch(`http://localhost:8000/api/events/${slug}`)
       .then((res) => res.json())
       .then((data) => {
-        setTickets(data.ticketTypes); // Menyesuaikan dengan response dari BE
+        setTickets(data.ticketTypes);
         setSortedTickets(data.ticketTypes);
       })
       .catch((err) => console.error("Error fetching tickets:", err));
@@ -102,10 +102,13 @@ export default function getEventBySlug() {
         </div>
       </div>
 
+      {/* Kirim slug ke TicketSummary */}
       <TicketSummary
         totalQuantity={totalQuantity}
         totalPrice={totalPrice}
         selectedType={selectedTypes}
+        eventSlug={slug}
+        selectedTickets={selectedTickets} // Tambahkan ini
       />
     </div>
   );

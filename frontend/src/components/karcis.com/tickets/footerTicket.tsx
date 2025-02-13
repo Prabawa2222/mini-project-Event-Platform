@@ -5,12 +5,16 @@ interface SummaryProps {
   totalQuantity: number;
   totalPrice: number;
   selectedType: string | null;
+  eventSlug: string;
+  selectedTickets: { [key: string]: number }; // Tambahkan ini
 }
 
 const TicketSummary: React.FC<SummaryProps> = ({
   totalQuantity,
   totalPrice,
   selectedType,
+  eventSlug,
+  selectedTickets, // Tambahkan ini
 }) => {
   return (
     <div className="bg-indigo-500 text-white p-4 px-20 flex justify-between items-center w-full">
@@ -37,7 +41,12 @@ const TicketSummary: React.FC<SummaryProps> = ({
         </div>
       )}
       {totalQuantity > 0 && (
-        <Link href="../transactions">
+        <Link
+          href={{
+            pathname: `/events/transactions/${eventSlug}`,
+            query: { tickets: JSON.stringify(selectedTickets) },
+          }}
+        >
           <button className="bg-white text-indigo-500 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100">
             Buy Tickets
           </button>

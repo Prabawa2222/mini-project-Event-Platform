@@ -5,7 +5,6 @@ import { FaMapMarkerAlt, FaRegCalendarAlt } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
-// Definisi tipe data untuk event
 interface Event {
   name: string;
   location: string;
@@ -16,8 +15,8 @@ interface Event {
 
 export default function HeroTickets() {
   const pathname = usePathname();
-  const slug = pathname.split("/").pop(); // Ambil slug dari URL
-  const [event, setEvent] = useState<Event | null>(null); // Gunakan tipe Event
+  const slug = pathname.split("/").pop();
+  const [event, setEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -42,16 +41,18 @@ export default function HeroTickets() {
 
   return (
     <div className="ml-[120px] flex gap-10">
-      <div className="w-[780px] h-[250px]">
+      {/* Gambar dengan ukuran tetap */}
+      <div className="w-[780px] h-[250px] relative">
         <Image
           src={event.imageUrl || "/banner.png"}
           alt={event.name}
-          layout="responsive"
-          width={1500}
-          height={250}
-          className="object-cover"
+          layout="fill"
+          objectFit="cover"
+          className="rounded-lg"
         />
       </div>
+
+      {/* Informasi Event */}
       <div className="w-[370px] h-[220px] flex flex-col">
         <h1 className="font-semibold text-2xl mb-4">{event.name}</h1>
         <div className="flex items-center gap-4 mb-2 text-gray-600">
