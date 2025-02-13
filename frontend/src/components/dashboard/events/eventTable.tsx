@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { eventService } from "@/lib/api/events";
+import { eventService } from "@/utils/api/organizer/events";
 import { EventPreview } from "@/types/event";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";

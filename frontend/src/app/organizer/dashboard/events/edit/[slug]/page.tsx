@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { eventService } from "@/lib/api/events";
+import { eventService } from "@/utils/api/organizer/events";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {

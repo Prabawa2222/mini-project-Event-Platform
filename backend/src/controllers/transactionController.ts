@@ -150,6 +150,23 @@ export class TransactionController {
     }
   }
 
+  async getUserTransactions(req: Request, res: Response): Promise<void> {
+    const userId = parseInt(req.params.userId);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+    try {
+      const transactions = await this.transactionService.getUserTransactions(
+        userId,
+        page,
+        limit
+      );
+      res.json(transactions);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  }
+
   async getPendingTransactionsByOrganizerId(
     req: Request,
     res: Response

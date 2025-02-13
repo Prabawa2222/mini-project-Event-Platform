@@ -270,6 +270,63 @@ export class TransactionService {
     return { message: "Rollback Successful" };
   }
 
+  async getUserTransactions(
+    userId: number,
+    page: number = 1,
+    limit: number = 10
+  ) {
+    try {
+      const skip = (page - 1) * limit;
+
+      const [transactions, total] = await Promise.all([
+        this.prisma.transaction.findMany({
+          where: {
+            userId: userId,
+          },
+          include: {
+            event: {
+              select: {
+                name: true,
+                startDate: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          skip,
+          take: limit,
+        }),
+        this.prisma.transaction.count({
+          where: {
+            userId: userId,
+          },
+        }),
+      ]);
+
+      const formattedTransactions = transactions.map((transaction) => ({
+        id: transaction.id,
+        event: transaction.event.name,
+        transactionDate: transaction.createdAt,
+        status: transaction.status,
+        totalPrice: transaction.totalPrice,
+      }));
+
+      return {
+        data: formattedTransactions,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      console.error("Error fetching user transactions:", error);
+      throw new Error("Failed to fetch user transactions");
+    }
+  }
+
   //organizer service
   async getTransactionsByOrganizerId(
     organizerId: number,

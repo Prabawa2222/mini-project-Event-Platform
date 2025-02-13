@@ -201,3 +201,12 @@ export interface TransactionWithImage {
   transactionId: number;
   imageUrl: string;
 }
+
+export interface CronJob {
+  schedule: string;
+  handler: () => Promise<void>;
+}
+
+export interface JobsRegistry {
+  [key: string]: CronJob;
+}

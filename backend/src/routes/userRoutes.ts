@@ -34,7 +34,7 @@ router.post("/reset-password", async (req, res, next) => {
 });
 
 //admin only
-// to be updated with cornjobs
+// to be updated with cronjobs
 router.post("/expire-coupons", (req, res) =>
   userController.expireCoupons(req, res)
 );

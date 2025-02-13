@@ -5,7 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useOrganizer } from "@/context/organizer/OrganizerContext";
-import { fetchProfile, updateProfile, changePassword } from "@/lib/api/profile";
+import {
+  fetchProfile,
+  updateProfile,
+  changePassword,
+} from "@/utils/api/organizer/profile";
 import {
   QueryClient,
   useMutation,

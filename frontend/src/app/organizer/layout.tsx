@@ -1,12 +1,10 @@
 "use client";
 
-import { DashboardSidebar } from "@/components/dashboardSidebar";
+import { DashboardSidebar } from "@/components/ui/dashboardSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { OrganizerProvider } from "@/context/organizer/OrganizerContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 

@@ -1,10 +1,36 @@
 export interface TicketType {
   id: number;
+  eventId: number;
   name: string;
   price: number;
   quantity: number;
-  eventId: number;
+  description?: string;
+}
+
+export interface Promotion {
+  id?: number;
+  discount: number;
+  startDate: string;
+  endDate: string;
+  currentUses?: number;
+  maxUses?: number;
+}
+
+export interface EventData {
+  id: number;
+  name: string;
   description: string;
+  price: number;
+  startDate: string;
+  endDate: string;
+  availableSeats: number;
+  organizerId: number;
+  category: string;
+  location: string;
+  slug: string;
+  imageUrl: string;
+  ticketTypes: TicketType[];
+  promotions: Promotion[];
 }
 
 export interface Review {
@@ -37,10 +63,13 @@ export interface EventFormData {
   };
   reviews?: Review[];
   promotions?: {
+    id: number;
+    code: string;
     discount: number;
     startDate: string;
     endDate: string;
-    maxUses?: number;
+    currentUses: number;
+    maxUses: number;
   }[];
 }
 
@@ -101,4 +130,17 @@ export interface CreateEventPayload {
   }[];
   image?: File;
   category: string;
+}
+
+export interface Attendee {
+  userId: number;
+  name: string;
+  ticketType: string;
+  quantity: number;
+  purchaseDate: string;
+}
+
+export interface AttendeesResponse {
+  data: Attendee[];
+  total?: number;
 }

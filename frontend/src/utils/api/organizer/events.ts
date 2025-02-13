@@ -5,6 +5,7 @@ import {
   UpdateEventDTO,
   EventFormData,
   EventDetails,
+  AttendeesResponse,
 } from "@/types/event";
 
 export const eventService = {
@@ -100,7 +101,7 @@ export const eventService = {
     return response.json();
   },
 
-  async getEventAttendees(slug: string): Promise<any> {
+  async getEventAttendees(slug: string): Promise<AttendeesResponse> {
     const response = await fetch(
       `${process.env.BASE_URL}/api/events/${slug}/attendees`
     );

@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { ImagePlus, Plus, X } from "lucide-react";
 
 import Image from "next/image";
-import { eventService } from "@/lib/api/events";
+import { eventService } from "@/utils/api/organizer/events";
 import { CreateEventFormValues, createEventSchema } from "@/lib/schema";
 import {
   Select,

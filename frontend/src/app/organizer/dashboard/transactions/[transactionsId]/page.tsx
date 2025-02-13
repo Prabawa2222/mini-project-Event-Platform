@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useOrganizer } from "@/context/organizer/OrganizerContext";
 import { useToast } from "@/hooks/use-toast";
-import { transactionService } from "@/lib/api/transactions";
+import { transactionService } from "@/utils/api/organizer/transactions";
 import { formatDate, getStatusStyle } from "@/lib/utils";
 import { TransactionPreview } from "@/types/transaction";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -192,7 +192,7 @@ const TransactionsIdOrganizerPage = () => {
             <div>
               <strong>Total Price:</strong>
               <p className="font-medium mt-1">
-                ${transaction?.totalPrice?.toLocaleString() ?? "0"}
+                Rp {transaction?.totalPrice?.toLocaleString() ?? "0"}
               </p>
             </div>
             <div>

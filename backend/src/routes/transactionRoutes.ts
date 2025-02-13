@@ -18,6 +18,10 @@ router.post("/:id/payment-proof", (req, res) =>
   transaction.uploadPaymentProof(req, res)
 );
 
+router.get("/user/:userId", (req, res) =>
+  transaction.getUserTransactions(req, res)
+);
+
 router.post("/update-statuses", (req, res) =>
   transaction.updateStatuses(req, res)
 );

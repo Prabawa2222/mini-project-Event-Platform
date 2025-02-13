@@ -7,6 +7,7 @@ import transactionRoutes from "./src/routes/transactionRoutes";
 import analyticsRoutes from "./src/routes/analyticsRoutes";
 import reviewRoutes from "./src/routes/reviewRoutes";
 import { authenticate } from "./src/middleware/authMiddleware";
+import { initializeCronJobs } from "./src/cron";
 
 dotenv.config();
 
@@ -14,6 +15,8 @@ const app = express();
 const PORT = process.env.BACKEND_PORT;
 
 //app.use(authenticate as express.RequestHandler);
+
+initializeCronJobs();
 
 app.use(cors());
 app.use(express.json());

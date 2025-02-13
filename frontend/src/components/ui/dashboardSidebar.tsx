@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Sidebar,
   SidebarContent,
@@ -24,7 +26,7 @@ import {
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 
-const items = [
+const ORGANIZER_ITEMS = [
   {
     title: "Home",
     url: "/organizer/dashboard",
@@ -45,16 +47,29 @@ const items = [
     url: "/organizer/profile",
     icon: User,
   },
+];
+
+const CUSTOMER_ITEMS = [
   {
-    title: "Settings",
-    url: "/organizer/settings",
-    icon: Settings,
+    title: "Transactions",
+    url: "/customer/transactions",
+    icon: DollarSign,
+  },
+  {
+    title: "Profile",
+    url: "/customer/profile",
+    icon: User,
   },
 ];
 
 export function DashboardSidebar() {
   const { data: session } = useSession();
-  const organizeName = session?.user?.name || "Organizer";
+  const userRole = session?.user?.role || "CUSTOMER";
+  const userName =
+    session?.user?.name ||
+    (userRole === "ORGANIZER" ? "Organizer" : "Customer");
+
+  const items = userRole === "ORGANIZER" ? ORGANIZER_ITEMS : CUSTOMER_ITEMS;
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/login" });
@@ -64,8 +79,8 @@ export function DashboardSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{organizeName}</SidebarGroupLabel>
-          <SidebarGroupContent>
+          <SidebarGroupLabel className="text-xl">{userName}</SidebarGroupLabel>
+          <SidebarGroupContent className="mt-5">
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -92,25 +107,5 @@ export function DashboardSidebar() {
         </Button>
       </SidebarFooter>
     </Sidebar>
-  );
-}
-
-function MenuItem({
-  href,
-  icon,
-  label,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 transition"
-    >
-      {icon}
-      <span>{label}</span>
-    </Link>
   );
 }

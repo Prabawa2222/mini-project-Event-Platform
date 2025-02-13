@@ -1,6 +1,6 @@
 "use client";
 
-import { eventService } from "@/lib/api/events";
+import { eventService } from "@/utils/api/organizer/events";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { EventData } from "@/types/event";
 
 const EventDetailsPage = () => {
   const router = useRouter();

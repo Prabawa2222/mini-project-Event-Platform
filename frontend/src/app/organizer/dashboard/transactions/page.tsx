@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/dataTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOrganizer } from "@/context/organizer/OrganizerContext";
-import { transactionService } from "@/lib/api/transactions";
+import { transactionService } from "@/utils/api/organizer/transactions";
 import { getStatusStyle } from "@/lib/utils";
 import { TransactionPreview, TransactionSummary } from "@/types/transaction";
 import { useQuery } from "@tanstack/react-query";
@@ -191,7 +191,7 @@ const TransactionsOrganizerPage = () => {
                           <td className="p-4">{transaction.ticketType.name}</td>
                           <td className="p-4">{transaction.quantity}</td>
                           <td className="p-4">
-                            ${transaction.totalPrice.toLocaleString()}
+                            Rp {transaction.totalPrice.toLocaleString()}
                           </td>
                           <td className="p-4">
                             <Badge

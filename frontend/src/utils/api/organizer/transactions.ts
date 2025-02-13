@@ -26,30 +26,6 @@ export const transactionService = {
     return response.json();
   },
 
-  async uploadPaymentProof(
-    transactionId: number,
-    data: UploadPaymentProofDto
-  ): Promise<TransactionDetails> {
-    const formData = new FormData();
-
-    if (data.paymentProof) {
-      formData.append("paymentProof", data.paymentProof);
-    }
-
-    const response = await fetch(
-      `${process.env.BASE_URL}/api/transaction/${transactionId}/payment-proof`,
-      {
-        method: "PATCH",
-        body: formData,
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to upload payment proof");
-    }
-    return response.json();
-  },
-
   async getTransactionsByOrganizerId(
     organizerId: string,
     page: number = 1,
