@@ -41,7 +41,11 @@ const TransactionsIdOrganizerPage = () => {
     queryFn: async () => {
       if (!transactionId) throw new Error("No transaction ID provided");
       const data = await transactionService.getTransactionById(transactionId);
-      return data;
+      return {
+        ...data,
+        coupon: data.coupon ? data.coupon.code : null,
+        promotion: data.promotion ? data.promotion.name : null,
+      } as TransactionPreview;
     },
     enabled: !!transactionId && !isNaN(transactionId),
   });
@@ -131,7 +135,7 @@ const TransactionsIdOrganizerPage = () => {
           <CardContent className="space-y-4">
             <div>
               <strong>Name:</strong>
-              <p className="font-medium mt-1">{transaction?.user}</p>
+              <p className="font-medium mt-1">{transaction?.user.name}</p>
             </div>
             <div>
               <strong>Coupon:</strong>
@@ -154,11 +158,11 @@ const TransactionsIdOrganizerPage = () => {
           <CardContent className="space-y-4">
             <div>
               <strong>Event:</strong>
-              <p className="font-medium mt-1">{transaction?.event}</p>
+              <p className="font-medium mt-1">{transaction?.event.name}</p>
             </div>
             <div>
               <strong>Ticket Type:</strong>
-              <p className="font-medium mt-1">{transaction?.ticketType}</p>
+              <p className="font-medium mt-1">{transaction?.ticketType.name}</p>
             </div>
             <div>
               <strong>Quantity:</strong>

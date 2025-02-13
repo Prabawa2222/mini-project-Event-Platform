@@ -362,12 +362,12 @@ const TransactionsOrganizerPage = () => {
                   </thead>
                   <tbody>
                     {pendingTransactions &&
-                      pendingTransactions.data?.map((transaction) => (
+                      pendingTransactions.data.map((transaction) => (
                         <tr key={transaction.id} className="border-b">
                           <td className="p-4">#{transaction.id}</td>
                           <td className="p-4">{transaction.user.name}</td>
-                          <td className="p-4">{transaction.event}</td>
-                          <td className="p-4">{transaction.ticketType}</td>
+                          <td className="p-4">{transaction.event.name}</td>
+                          <td className="p-4">{transaction.ticketType.name}</td>
                           <td className="p-4">{transaction.quantity}</td>
                           <td className="p-4">
                             ${transaction.totalPrice.toLocaleString()}

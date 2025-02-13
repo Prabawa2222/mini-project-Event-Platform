@@ -4,6 +4,7 @@ import {
   TransactionDetails,
   TransactionSummary,
   UploadPaymentProofDto,
+  PendingTransactionsResponse,
 } from "@/types/transaction";
 
 export const transactionService = {
@@ -69,7 +70,7 @@ export const transactionService = {
     organizerId: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<TransactionPreview[]> {
+  ): Promise<PendingTransactionsResponse> {
     const response = await fetch(
       `${process.env.BASE_URL}/api/transaction/organizer/${organizerId}/pending?page=${page}&limit=${limit}`,
       {

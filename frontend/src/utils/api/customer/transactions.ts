@@ -2,6 +2,7 @@ import {
   TransactionDetails,
   TransactionPreview,
   UploadPaymentProofDto,
+  UserTransactionPreview,
 } from "@/types/transaction";
 
 export const transactionService = {
@@ -33,7 +34,7 @@ export const transactionService = {
     userId: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<TransactionPreview[]> {
+  ): Promise<UserTransactionPreview> {
     // Note: Return type is array now
     try {
       console.log(
