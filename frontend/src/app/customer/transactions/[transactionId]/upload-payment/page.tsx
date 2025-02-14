@@ -28,7 +28,7 @@ const UploadPaymentPage = () => {
       formData.append("image", paymentProof);
 
       const response = await fetch(
-        `${process.env.BASE_URL}/api/transaction/${transactionId}/payment-proof`,
+        `${process.env.NEXT_PUBLIC_API}/api/transaction/${transactionId}/payment-proof`,
         {
           method: "POST",
           body: formData,

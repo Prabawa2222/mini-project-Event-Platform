@@ -30,7 +30,7 @@ export const eventService = {
       })
     );
 
-    const response = await fetch(`${process.env.BASE_URL}/api/events`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API}/api/events`, {
       method: "POST",
       body: formData,
     });
@@ -47,7 +47,7 @@ export const eventService = {
     organizerId: string
   ): Promise<EventPreview[]> {
     const response = await fetch(
-      `${process.env.BASE_URL}/api/events/organizer?organizerId=${organizerId}`,
+      `${process.env.NEXT_PUBLIC_API}/api/events/organizer?organizerId=${organizerId}`,
       {
         method: "GET",
         headers: {
@@ -81,7 +81,7 @@ export const eventService = {
 
     const response = await fetch(
       `${
-        process.env.BASE_URL
+        process.env.NEXT_PUBLIC_API
       }/api/events/organizer/${organizerId}/events/search?${params.toString()}`
     );
     console.log("Calling API with URL:", response);
@@ -94,7 +94,9 @@ export const eventService = {
   },
 
   async getEventBySlug(slug: string): Promise<EventDetails> {
-    const response = await fetch(`${process.env.BASE_URL}/api/events/${slug}`);
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API}/api/events/${slug}`
+    );
     if (!response.ok) {
       throw new Error("Failed to fetch event");
     }
@@ -103,7 +105,7 @@ export const eventService = {
 
   async getEventAttendees(slug: string): Promise<AttendeesResponse> {
     const response = await fetch(
-      `${process.env.BASE_URL}/api/events/${slug}/attendees`
+      `${process.env.NEXT_PUBLIC_API}/api/events/${slug}/attendees`
     );
     if (!response.ok) {
       throw new Error("Failed to fetch event attendee");
@@ -112,13 +114,16 @@ export const eventService = {
   },
 
   async updateEvent(slug: string, eventData: UpdateEventDTO): Promise<Event> {
-    const response = await fetch(`${process.env.BASE_URL}/api/events/${slug}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(eventData),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API}/api/events/${slug}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(eventData),
+      }
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
@@ -135,9 +140,12 @@ export const eventService = {
   },
 
   async deleteEvent(slug: string): Promise<void> {
-    const response = await fetch(`${process.env.BASE_URL}/api/events/${slug}`, {
-      method: "DELETE",
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API}/api/events/${slug}`,
+      {
+        method: "DELETE",
+      }
+    );
     if (!response.ok) {
       throw new Error("Failed to delete event");
     }
@@ -146,7 +154,7 @@ export const eventService = {
   async searchEvents(searchParams: any): Promise<Event[]> {
     const queryString = new URLSearchParams(searchParams).toString();
     const response = await fetch(
-      `${process.env.BASE_URL}/api/events/search?${queryString}`
+      `${process.env.NEXT_PUBLIC_API}/api/events/search?${queryString}`
     );
     if (!response.ok) {
       throw new Error("Failed to search events");
@@ -156,7 +164,7 @@ export const eventService = {
 
   async getOrganizerEvents(organizerId: number): Promise<Event[]> {
     const response = await fetch(
-      `${process.env.BASE_URL}/api/events/organizer/${organizerId}`
+      `${process.env.NEXT_PUBLIC_API}/api/events/organizer/${organizerId}`
     );
 
     if (!response.ok) {

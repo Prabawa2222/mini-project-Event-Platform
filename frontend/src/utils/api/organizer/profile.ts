@@ -1,6 +1,6 @@
 export const fetchProfile = async (userId: string) => {
   const response = await fetch(
-    `${process.env.BASE_URL}/api/users/profile?userId=${userId}`,
+    `${process.env.NEXT_PUBLIC_API}/api/users/profile?userId=${userId}`,
     {
       method: "GET",
       headers: {
@@ -32,7 +32,7 @@ export const updateProfile = async (userId: string, formData: FormData) => {
   }
 
   const response = await fetch(
-    `${process.env.BASE_URL}/api/users/profile/${userId}`,
+    `${process.env.NEXT_PUBLIC_API}/api/users/profile/${userId}`,
     {
       method: "PUT",
       body: requestFormData,
@@ -52,7 +52,7 @@ export const changePassword = async (
   data: { oldPassword: string; newPassword: string }
 ) => {
   const response = await fetch(
-    `${process.env.BASE_URL}/api/users/password/${userId}`,
+    `${process.env.NEXT_PUBLIC_API}/api/users/password/${userId}`,
     {
       method: "POST",
       headers: {

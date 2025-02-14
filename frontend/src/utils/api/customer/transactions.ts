@@ -17,7 +17,7 @@ export const transactionService = {
     }
 
     const response = await fetch(
-      `${process.env.BASE_URL}/api/transaction/${transactionId}/payment-proof`,
+      `${process.env.NEXT_PUBLIC_API}/api/transaction/${transactionId}/payment-proof`,
       {
         method: "PATCH",
         body: formData,
@@ -47,7 +47,7 @@ export const transactionService = {
       );
 
       const response = await fetch(
-        `${process.env.BASE_URL}/api/transaction/user/${userId}?page=${page}&limit=${limit}`,
+        `${process.env.NEXT_PUBLIC_API}/api/transaction/user/${userId}?page=${page}&limit=${limit}`,
         {
           method: "GET",
           headers: {

@@ -1,11 +1,8 @@
 {
-  "/favicon.ico/route": "app/favicon.ico/route.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/customer/transactions/page": "app/customer/transactions/page.js",
-  "/organizer/dashboard/transactions/page": "app/organizer/dashboard/transactions/page.js",
-  "/customer/transactions/[transactionId]/upload-payment/page": "app/customer/transactions/[transactionId]/upload-payment/page.js",
-  "/customer/profile/page": "app/customer/profile/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/page": "app/page.js",
   "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/organizer/dashboard/page": "app/organizer/dashboard/page.js",
-  "/organizer/dashboard/transactions/[transactionsId]/page": "app/organizer/dashboard/transactions/[transactionsId]/page.js"
+  "/customer/transactions/page": "app/customer/transactions/page.js",
+  "/(auth)/register/page": "app/(auth)/register/page.js"
 }
