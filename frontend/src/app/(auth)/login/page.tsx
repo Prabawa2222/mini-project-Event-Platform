@@ -18,22 +18,16 @@ export default function LoginPage() {
 
   const handleSuccessfulLogin = async () => {
     try {
-      // Wait a bit for the session to be updated
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const response = await fetch("/api/auth/session");
       const sessionData = await response.json();
-      console.log("Session data:", sessionData);
 
-      // Check the role and redirect accordingly
       if (sessionData?.user?.role?.toUpperCase() === "ORGANIZER") {
-        console.log("Redirecting to organizer dashboard");
-        router.push("/organizer/dashboard");
+        window.location.href = "/organizer/dashboard";
       } else {
-        console.log("Redirecting to user dashboard");
-        router.push("/user/dashboard");
+        window.location.href = "/customer/transactions";
       }
-      router.refresh();
     } catch (error) {
       console.error("Error during login redirect:", error);
       setError("Error during redirect");
@@ -65,7 +59,7 @@ export default function LoginPage() {
           // Add a small delay to ensure session is updated
           setTimeout(async () => {
             await handleSuccessfulLogin();
-          }, 500);
+          }, 2000);
         }
       } catch (error) {
         console.error("Login error:", error);

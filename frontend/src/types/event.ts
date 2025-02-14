@@ -1,19 +1,56 @@
 export interface TicketType {
   id: number;
+  eventId: number;
   name: string;
   price: number;
   quantity: number;
-  eventId: number;
+  description?: string;
 }
 
-export interface Event {
+export interface Promotion {
+  id?: number;
+  discount: number;
+  startDate: string;
+  endDate: string;
+  currentUses?: number;
+  maxUses?: number;
+}
+
+export interface EventData {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  startDate: string;
+  endDate: string;
+  availableSeats: number;
+  organizerId: number;
+  category: string;
+  location: string;
+  slug: string;
+  imageUrl: string;
+  ticketTypes: TicketType[];
+  promotions: Promotion[];
+}
+
+export interface Review {
+  id: number;
+  userId: number;
+  eventId: number;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
+export interface EventFormData {
   id: number;
   name: string;
   description: string;
   location: string;
   price: number;
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
+  imageUrl: string;
   availableSeats: number;
   category: string;
   slug: string;
@@ -24,15 +61,31 @@ export interface Event {
     id: number;
     name: string;
   };
+  reviews?: Review[];
+  promotions?: {
+    id: number;
+    code: string;
+    discount: number;
+    startDate: string;
+    endDate: string;
+    currentUses: number;
+    maxUses: number;
+  }[];
+}
+
+export interface EventDetails extends EventFormData {
+  reviews: Review[];
 }
 
 export interface EventPreview {
   name: string;
+  slug: string;
   price: number;
   description: string;
   startDate: Date;
   category: string;
   location: string;
+  deletedAt?: Date;
 }
 
 export interface CreateEventDto {
@@ -45,6 +98,7 @@ export interface CreateEventDto {
     price: number;
     quantity: number;
   }[];
+  image?: File;
 }
 
 export interface UpdateEventDTO {
@@ -60,4 +114,33 @@ export interface UpdateEventDTO {
     price: number;
     quantity: number;
   }[];
+}
+
+export interface CreateEventPayload {
+  organizerId: number;
+  name: string;
+  description: string;
+  location: string;
+  startDate?: Date;
+  endDate?: Date;
+  ticketTypes: {
+    name: string;
+    price: number;
+    quantity: number;
+  }[];
+  image?: File;
+  category: string;
+}
+
+export interface Attendee {
+  userId: number;
+  name: string;
+  ticketType: string;
+  quantity: number;
+  purchaseDate: string;
+}
+
+export interface AttendeesResponse {
+  data: Attendee[];
+  total?: number;
 }

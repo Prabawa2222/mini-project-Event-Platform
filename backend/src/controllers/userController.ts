@@ -3,15 +3,18 @@ import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import prisma from "../../prisma/client";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../utils/jwt";
 import { UserService } from "../services/userService";
 import { CreateUserDto } from "../types";
+import { ImageService } from "../services/utilService";
+import multer from "multer";
 
 export class UserController {
   private userService: UserService;
+  private imageService: ImageService;
 
   constructor() {
     this.userService = new UserService();
+    this.imageService = new ImageService();
   }
 
   registeUser = async (req: Request, res: Response): Promise<void> => {
@@ -34,13 +37,88 @@ export class UserController {
     }
   };
 
-  updateUserProfile = async (req: Request, res: Response): Promise<void> => {
+  getProfile = async (req: Request, res: Response): Promise<void> => {
     try {
-      const userId = parseInt(req.params.id);
-      await this.userService.updateUserProfile(userId, req.body);
+      // const userId = req.user?.id;
+      // if (!userId) {
+      //   res.status(401).json({ success: false, message: "Unauthorized" });
+      //   return;
+      // }
+      // not save
+      const userId = Number(req.query.userId);
+      if (isNaN(userId)) {
+        res
+          .status(400)
+          .json({ success: false, message: "Invalid user ID format" });
+        return;
+      }
+
+      const profile = await this.userService.getUserProfile(userId);
+      res.json({ success: true, data: profile });
     } catch (error: any) {
       res.status(400).json({ success: false, message: error.message });
     }
+  };
+
+  updateUserProfile = async (req: Request, res: Response): Promise<void> => {
+    ImageService.upload(req, res, async (err) => {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({
+          success: false,
+          message: "File upload error: " + err.message,
+        });
+      }
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          message: err.message,
+        });
+      }
+
+      try {
+        const userId = parseInt(req.params.id);
+        let userData;
+
+        try {
+          userData = req.body.data
+            ? JSON.parse(req.body.data)
+            : { name: req.body.name };
+        } catch (e) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid data format",
+          });
+        }
+
+        let profilePictureUrl = undefined;
+        if (req.file) {
+          try {
+            profilePictureUrl = await this.imageService.uploadImage(req.file);
+          } catch (error) {
+            return res.status(400).json({
+              success: false,
+              message: "Failed to upload image",
+            });
+          }
+        }
+
+        const updateData = {
+          ...userData,
+          profilePicture: profilePictureUrl || userData.profilePicture,
+        };
+
+        const updatedUser = await this.userService.updateUserProfile(
+          userId,
+          updateData
+        );
+        res.json({ success: true, data: updatedUser });
+      } catch (error: any) {
+        res.status(400).json({
+          success: false,
+          message: error.message || "Failed to update profile",
+        });
+      }
+    });
   };
 
   changeUserPassword = async (req: Request, res: Response): Promise<void> => {
@@ -52,6 +130,27 @@ export class UserController {
         .json({ success: true, message: "Password updated successfully" });
     } catch (error: any) {
       res.status(400).json({ success: false, message: error.message });
+    }
+  };
+
+  forgotPassword = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      await this.userService.forgotPassword(req.body);
+      return res.status(200).json({
+        message:
+          "If an account exists with that email, a password reset link has been sent",
+      });
+    } catch (error: any) {
+      return res.status(500).json({ message: "Failed to process request" });
+    }
+  };
+
+  resetPassword = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      await this.userService.resetPassword(req.body);
+      return res.status(200).json({ message: "Password reset successfully" });
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
     }
   };
 
