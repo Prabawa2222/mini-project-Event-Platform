@@ -18,11 +18,15 @@ export class TransactionService {
       promotionId,
     } = data;
 
+    console.log("Received ticketTypeId:", ticketTypeId);
+
     const ticketType = await this.prisma.ticketType.findUnique({
       where: { id: ticketTypeId },
     });
-    if (!ticketType || ticketType.quantity < quantity)
-      throw new Error("Not enough tickets available");
+
+    if (!ticketType) {
+      throw new Error(`Ticket type with ID ${ticketTypeId} not found.`);
+    }
 
     // Calculate initial total price
     let totalPrice = ticketType.price * quantity - pointsUsed;

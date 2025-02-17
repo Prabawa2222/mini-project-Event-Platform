@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^6.2.1",
+    "@prisma/client": "^6.3.1",
     "@supabase/storage-js": "^2.7.1",
     "backend": "file:",
     "bcrypt": "^5.1.1",
@@ -38,7 +38,7 @@
     "@types/node": "^22.10.7",
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.17",
-    "prisma": "^6.2.1",
+    "prisma": "^6.3.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.7.3"

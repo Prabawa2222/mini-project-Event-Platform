@@ -1,3 +1,11 @@
 {
-  "/home/page": "app/home/page.js"
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/events/page": "app/events/page.js",
+  "/events/[slug]/page": "app/events/[slug]/page.js",
+  "/events/tickets/[slug]/page": "app/events/tickets/[slug]/page.js",
+  "/events/transactions/[slug]/page": "app/events/transactions/[slug]/page.js",
+  "/events/transactions/[slug]/transaction-summary/page": "app/events/transactions/[slug]/transaction-summary/page.js",
+  "/events/create-events/page": "app/events/create-events/page.js"
 }
