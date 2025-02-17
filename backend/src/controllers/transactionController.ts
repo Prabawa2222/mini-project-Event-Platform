@@ -207,8 +207,7 @@ export class TransactionController {
 
   async approveTransaction(req: Request, res: Response): Promise<void> {
     const transactionId = parseInt(req.params.id);
-    const organizerId = parseInt(req.body.organizerId); // Or get from auth token
-
+    const organizerId = parseInt(req.body.organizerId);
     try {
       const transaction = await this.transactionService.approveTransaction(
         transactionId,
@@ -233,8 +232,7 @@ export class TransactionController {
     try {
       const transaction = await this.transactionService.rejectTransaction(
         transactionId,
-        organizerId,
-        rejectionReason
+        organizerId
       );
       res.send(transaction);
     } catch (err: any) {

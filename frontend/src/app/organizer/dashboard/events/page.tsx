@@ -90,9 +90,9 @@ const EventDashboardOrganizerPage = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 w-[980px] mr-16">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6 w-full max-w-[980px] mx-auto px-2 md:px-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 pb-4">
           <CardTitle className="text-2xl font-bold">
             Events Management
           </CardTitle>
@@ -103,10 +103,10 @@ const EventDashboardOrganizerPage = () => {
           </Button>
         </CardHeader>
         <CardContent>
-          <form className="flex gap-4 mb-6">
+          <form className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-4 md:mb-6">
             <Input
               placeholder="Search events..."
-              className="max-w-sm"
+              className="w-full sm:max-w-sm"
               value={searchTerm}
               onChange={(e) => setsearchTerm(e.target.value)}
             />
@@ -114,7 +114,7 @@ const EventDashboardOrganizerPage = () => {
               value={selectedCategory}
               onValueChange={setSelectedCategory}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>

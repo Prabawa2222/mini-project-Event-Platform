@@ -18,10 +18,11 @@ export class EmailService {
       ticketType: string;
       quantity: number;
       totalPrice: number;
+      previewUrl: string;
     }
-  ): Promise<void> {
+  ): Promise<any> {
     try {
-      await this.emailTransporter.sendMail({
+      const info = await this.emailTransporter.sendMail({
         from: `"${process.env.APP_NAME}" <${process.env.EMAIL_FROM}>`,
         to: userEmail,
         subject: "Transaction Approved",
@@ -34,9 +35,12 @@ export class EmailService {
             <li>Quantity: ${transactionDetails.quantity}</li>
             <li>Total Price: ${transactionDetails.totalPrice}</li>
           </ul>
+          <p><a href="${transactionDetails.previewUrl}">View Transaction Details</a></p>
           <p>Thank you for your purchase!</p>
         `,
       });
+
+      return info; // Ensure info is returned
     } catch (error) {
       console.error("Failed to send approval email:", error);
       throw new Error("Failed to send approval notification email");
@@ -50,11 +54,12 @@ export class EmailService {
       ticketType: string;
       quantity: number;
       totalPrice: number;
+      previewUrl: string;
     },
-    rejectionReason: string
-  ): Promise<void> {
+    rejectionReason: string = "No specific reason provided"
+  ): Promise<any> {
     try {
-      await this.emailTransporter.sendMail({
+      const info = await this.emailTransporter.sendMail({
         from: `"${process.env.APP_NAME}" <${process.env.EMAIL_FROM}>`,
         to: userEmail,
         subject: "Transaction Rejected",
@@ -69,8 +74,11 @@ export class EmailService {
           </ul>
           <p><strong>Reason for rejection:</strong> ${rejectionReason}</p>
           <p>Any points, vouchers, or coupons used in this transaction have been returned to your account.</p>
+          <p><a href="${transactionDetails.previewUrl}">View Transaction Details</a></p>
         `,
       });
+
+      return info; // Ensure info is returned
     } catch (error) {
       console.error("Failed to send rejection email:", error);
       throw new Error("Failed to send rejection notification email");

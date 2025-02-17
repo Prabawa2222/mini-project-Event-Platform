@@ -1,11 +1,11 @@
 {
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/organizer/dashboard/events/[slug]/attendees/page": "app/organizer/dashboard/events/[slug]/attendees/page.js",
-  "/organizer/dashboard/transactions/page": "app/organizer/dashboard/transactions/page.js",
-  "/organizer/dashboard/transactions/[transactionsId]/page": "app/organizer/dashboard/transactions/[transactionsId]/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
   "/organizer/dashboard/events/page": "app/organizer/dashboard/events/page.js",
-  "/organizer/dashboard/events/[slug]/page": "app/organizer/dashboard/events/[slug]/page.js",
-  "/organizer/dashboard/page": "app/organizer/dashboard/page.js"
+  "/organizer/dashboard/events/[slug]/attendees/page": "app/organizer/dashboard/events/[slug]/attendees/page.js",
+  "/organizer/dashboard/page": "app/organizer/dashboard/page.js",
+  "/organizer/dashboard/events/create/page": "app/organizer/dashboard/events/create/page.js",
+  "/organizer/profile/page": "app/organizer/profile/page.js",
+  "/(auth)/reset-password/page": "app/(auth)/reset-password/page.js"
 }

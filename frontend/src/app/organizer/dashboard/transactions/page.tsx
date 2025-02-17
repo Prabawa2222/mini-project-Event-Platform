@@ -61,8 +61,8 @@ const TransactionsOrganizerPage = () => {
     enabled: !!organizerId,
   });
 
-  console.log("All Transactions data:", transactions);
-  console.log("Pending Transactions data:", pendingTransactions);
+  // console.log("All Transactions data:", transactions);
+  // console.log("Pending Transactions data:", pendingTransactions);
 
   const isLoading =
     isLoadingTransactions || isLoadingPending || isLoadingSummary;
@@ -80,14 +80,14 @@ const TransactionsOrganizerPage = () => {
   };
 
   return (
-    <Card className="p-6 space-y-6 w-[980px] mx-8">
+    <Card className="p-4 md:p-6 space-y-4 md:space-y-6 w-full max-w-[980px] mx-auto px-2 md:px-8">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle className="text-2xl font-bold">
           Transactions Management
         </CardTitle>
       </CardHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -151,7 +151,7 @@ const TransactionsOrganizerPage = () => {
               <CardTitle>All Transactions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-muted/50">
                     <tr className="border-b">
@@ -185,12 +185,18 @@ const TransactionsOrganizerPage = () => {
                     {transactions &&
                       transactions.map((transaction) => (
                         <tr key={transaction.id} className="border-b">
-                          <td className="p-4">#{transaction.id}</td>
-                          <td className="p-4">{transaction.user.name}</td>
-                          <td className="p-4">{transaction.event.name}</td>
-                          <td className="p-4">{transaction.ticketType.name}</td>
-                          <td className="p-4">{transaction.quantity}</td>
-                          <td className="p-4">
+                          <td className="p-4 md:p-4">#{transaction.id}</td>
+                          <td className="p-4 md:p-4">
+                            {transaction.user.name}
+                          </td>
+                          <td className="p-4 md:p-4">
+                            {transaction.event.name}
+                          </td>
+                          <td className="p-4 md:p-4">
+                            {transaction.ticketType.name}
+                          </td>
+                          <td className="p-4 md:p-4">{transaction.quantity}</td>
+                          <td className="p-4 md:p-4">
                             Rp {transaction.totalPrice.toLocaleString()}
                           </td>
                           <td className="p-4">
@@ -333,7 +339,7 @@ const TransactionsOrganizerPage = () => {
               <CardTitle>Pending Transactions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-muted/50">
                     <tr className="border-b">

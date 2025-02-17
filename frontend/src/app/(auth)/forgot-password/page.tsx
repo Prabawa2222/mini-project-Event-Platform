@@ -14,6 +14,7 @@ export default function ForgotPasswordPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
 
   const formik = useFormik({
     initialValues: {
@@ -36,17 +37,13 @@ export default function ForgotPasswordPage() {
         const data = await response.json();
 
         if (response.ok) {
-          setSuccess(
-            "If an account exists with that email, a password reset link has been sent"
-          );
+          setSuccess(data.message || "Password reset link sent.");
+          setPreviewUrl(data.previewUrl || "");
           setError("");
-          // Optionally redirect after a delay
-          setTimeout(() => {
-            router.push("/login");
-          }, 5000);
         } else {
           setError(data.message || "An error occurred");
           setSuccess("");
+          setPreviewUrl("");
         }
       } catch (error) {
         console.error("Forgot password error:", error);
@@ -77,6 +74,18 @@ export default function ForgotPasswordPage() {
           )}
           {success && (
             <div className="text-green-500 text-sm text-center">{success}</div>
+          )}
+          {previewUrl && (
+            <div className="text-center">
+              <a
+                href={previewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-600 hover:underline text-sm"
+              >
+                View Email Preview
+              </a>
+            </div>
           )}
 
           <div className="rounded-md shadow-sm space-y-5">

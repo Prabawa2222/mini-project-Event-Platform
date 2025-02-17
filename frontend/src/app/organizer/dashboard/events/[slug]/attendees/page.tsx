@@ -31,9 +31,9 @@ const EventAttendeesPage = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6 w-full max-w-[980px] mx-auto px-2 md:px-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+        <h1 className="text-xl md:text-2xl font-bold break-words">
           Attendees for {event?.name || "Event"}
         </h1>
         <Button
@@ -41,11 +41,14 @@ const EventAttendeesPage = () => {
           onClick={() =>
             router.push(`/organizer/dashboard/events/${eventSlug}`)
           }
+          className="w-full sm:w-auto whitespace-nowrap"
         >
           Back to Event Details
         </Button>
       </div>
-      <AttendeeList data={attendeesData.data} total={attendeesData.total} />
+      <div className="w-full overflow-x-auto">
+        <AttendeeList data={attendeesData.data} total={attendeesData.total} />
+      </div>
     </div>
   );
 };

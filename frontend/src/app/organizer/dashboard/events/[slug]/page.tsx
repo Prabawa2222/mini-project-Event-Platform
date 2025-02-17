@@ -50,9 +50,9 @@ const EventDetailsPage = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 w-[980px] mr-16">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6 w-full max-w-[980px] mx-auto px-2 md:px-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 pb-4">
           <CardTitle className="text-2xl font-bold">Event Details</CardTitle>
           <div className="space-x-2">
             <Button
@@ -127,7 +127,7 @@ const EventDetailsPage = () => {
               <TableRow>
                 <TableHead>Ticket Types</TableHead>
                 <TableCell>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {event.ticketTypes.map((ticket) => (
                       <div
                         key={ticket.id}
@@ -209,7 +209,7 @@ const EventDetailsPage = () => {
                 <TableHead>Reviews</TableHead>
                 <TableCell>
                   {event.reviews?.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3 md:space-y-4">
                       {event.reviews.map((review) => (
                         <div
                           key={review.id}

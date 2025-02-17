@@ -7,6 +7,8 @@ import {
 import { TransactionRequest, TransactionWithImage } from "../types";
 import { ImageService } from "./utilService";
 import { EmailService } from "./emailService";
+import nodemailer from "nodemailer";
+
 export class TransactionService {
   private prisma: PrismaClient;
   private imageService: ImageService;
@@ -545,139 +547,137 @@ export class TransactionService {
     }
   }
 
-  async approveTransaction(
-    transactionId: number,
-    organizerId: number
-  ): Promise<Transaction> {
-    return await this.prisma.$transaction(async (prisma) => {
-      const transaction = await prisma.transaction.findUnique({
-        where: { id: transactionId },
-        include: {
-          user: true,
-          event: true,
-          ticketType: true,
-        },
-      });
+  async approveTransaction(transactionId: number, organizerId: number) {
+    return await this.prisma.$transaction(
+      async (prisma) => {
+        const transaction = await prisma.transaction.findUnique({
+          where: { id: transactionId },
+          include: {
+            user: true,
+            event: true,
+            ticketType: true,
+          },
+        });
 
-      if (!transaction) {
-        throw new Error("Transaction not found");
-      }
-
-      if (transaction.event.organizerId !== organizerId) {
-        throw new Error("Unauthorized to approve this transaction");
-      }
-
-      const updatedTransaction = await this.prisma.transaction.update({
-        where: { id: transactionId },
-        data: {
-          status: "DONE",
-          updatedAt: new Date(),
-        },
-      });
-
-      await this.emailService.sendTransactionApprovalEmail(
-        transaction.user.email,
-        {
-          eventName: transaction.event.name,
-          ticketType: transaction.ticketType.name,
-          quantity: transaction.quantity,
-          totalPrice: transaction.totalPrice,
+        if (!transaction) {
+          throw new Error("Transaction not found");
         }
-      );
 
-      return updatedTransaction;
-    });
+        if (transaction.event.organizerId !== organizerId) {
+          throw new Error("Unauthorized to approve this transaction");
+        }
+
+        const updatedTransaction = await prisma.transaction.update({
+          where: { id: transactionId },
+          data: {
+            status: "DONE",
+            updatedAt: new Date(),
+          },
+        });
+
+        const previewUrl = `${process.env.FRONTEND_URL}/transaction/${transactionId}/preview`;
+
+        try {
+          console.log("Attempting to send approval email...");
+          const info = await this.emailService.sendTransactionApprovalEmail(
+            transaction.user.email,
+            {
+              eventName: transaction.event.name,
+              ticketType: transaction.ticketType.name,
+              quantity: transaction.quantity,
+              totalPrice: transaction.totalPrice,
+              previewUrl,
+            }
+          );
+
+          console.log("Email sent successfully:", info);
+
+          let emailPreviewUrl = null;
+          if (process.env.NODE_ENV === "development") {
+            emailPreviewUrl = nodemailer.getTestMessageUrl(info);
+            console.log("Preview URL for test email:", emailPreviewUrl);
+          }
+
+          return {
+            success: true,
+            message: "Transaction approved successfully",
+            previewUrl,
+            emailPreviewUrl, // Include preview URL in response
+            transaction: updatedTransaction,
+          };
+        } catch (emailError) {
+          console.error("Failed to send email:", emailError);
+          throw emailError;
+        }
+      },
+      { timeout: 10000 }
+    );
   }
 
-  async rejectTransaction(
-    transactionId: number,
-    organizerId: number,
-    rejectionReason: string
-  ): Promise<Transaction> {
-    return await this.prisma.$transaction(async (prisma) => {
-      const transaction = await prisma.transaction.findUnique({
-        where: { id: transactionId },
-        include: {
-          user: true,
-          event: true,
-          ticketType: true,
-        },
-      });
-
-      if (!transaction) {
-        throw new Error("Transaction not found");
-      }
-
-      if (transaction.event.organizerId !== organizerId) {
-        throw new Error("Unauthorized to reject this transaction");
-      }
-
-      // Restore resources
-      await Promise.all([
-        // Restore seats
-        prisma.ticketType.update({
-          where: { id: transaction.ticketTypeId },
-          data: {
-            quantity: {
-              increment: transaction.quantity,
-            },
+  async rejectTransaction(transactionId: number, organizerId: number) {
+    return await this.prisma.$transaction(
+      async (prisma) => {
+        const transaction = await prisma.transaction.findUnique({
+          where: { id: transactionId },
+          include: {
+            user: true,
+            event: true,
+            ticketType: true,
           },
-        }),
+        });
 
-        // Return points if used
-        transaction.pointsUsed > 0 &&
-          prisma.user.update({
-            where: { id: transaction.userId },
-            data: {
-              points: {
-                increment: transaction.pointsUsed,
-              },
-            },
-          }),
+        if (!transaction) {
+          throw new Error("Transaction not found");
+        }
 
-        // Return coupon if used
-        transaction.couponId &&
-          prisma.coupon.update({
-            where: { id: transaction.couponId },
-            data: {
-              isUsed: false,
-              usedAt: null,
-            },
-          }),
+        if (transaction.event.organizerId !== organizerId) {
+          throw new Error("Unauthorized to reject this transaction");
+        }
 
-        // Decrement promotion usage if used
-        transaction.promotionId &&
-          prisma.promotion.update({
-            where: { id: transaction.promotionId },
-            data: {
-              currentUses: {
-                decrement: 1,
-              },
-            },
-          }),
-      ]);
+        const updatedTransaction = await prisma.transaction.update({
+          where: { id: transactionId },
+          data: {
+            status: "REJECTED",
+            updatedAt: new Date(),
+          },
+        });
 
-      const updatedTransaction = await prisma.transaction.update({
-        where: { id: transactionId },
-        data: {
-          status: "REJECTED",
-        },
-        include: { user: true },
-      });
+        const previewUrl = `${process.env.FRONTEND_URL}/transaction/${transactionId}/preview`;
 
-      // Send rejection email
-      await this.emailService.sendTransactionRejectionEmail(
-        transaction.user.email,
-        {
-          eventName: transaction.event.name,
-          ticketType: transaction.ticketType.name,
-          quantity: transaction.quantity,
-          totalPrice: transaction.totalPrice,
-        },
-        rejectionReason
-      );
+        try {
+          console.log("Attempting to send rejection email...");
+          const info = await this.emailService.sendTransactionRejectionEmail(
+            transaction.user.email,
+            {
+              eventName: transaction.event.name,
+              ticketType: transaction.ticketType.name,
+              quantity: transaction.quantity,
+              totalPrice: transaction.totalPrice,
+              previewUrl,
+            }
+          );
 
-      return updatedTransaction;
-    });
+          console.log("Email sent successfully:", info);
+
+          let emailPreviewUrl = null;
+          if (process.env.NODE_ENV === "development") {
+            emailPreviewUrl = nodemailer.getTestMessageUrl(info);
+            console.log("Preview URL for test email:", emailPreviewUrl);
+          }
+
+          return {
+            success: true,
+            message: "Transaction rejected successfully",
+            previewUrl,
+            emailPreviewUrl, // Include preview URL in response
+            transaction: updatedTransaction,
+          };
+        } catch (emailError) {
+          console.error("Failed to send email:", emailError);
+          throw emailError;
+        }
+      },
+      { timeout: 10000 }
+    );
   }
 }

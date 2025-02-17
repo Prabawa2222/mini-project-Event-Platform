@@ -47,11 +47,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/organizer/dashboard/page.js"
     ],
-    "/organizer/profile/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/organizer/profile/page.js"
-    ],
     "/organizer/dashboard/transactions/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -76,6 +71,21 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/organizer/dashboard/events/[slug]/attendees/page.js"
+    ],
+    "/organizer/profile/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/organizer/profile/page.js"
+    ],
+    "/organizer/dashboard/events/create/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/organizer/dashboard/events/create/page.js"
+    ],
+    "/_not-found/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/_not-found/page.js"
     ]
   }
 }

@@ -45,6 +45,7 @@ export interface TransactionPreview {
   paymentProof: string;
   createdAt: string;
   updatedAt: string;
+  previewUrl?: string;
 }
 
 export interface TransactionDetails
@@ -59,6 +60,7 @@ export interface TransactionDetails
   } | null;
   expiresAt: Date;
   rejectionReason?: string;
+  emailPreviewUrl?: string;
 }
 
 export interface TransactionSummary {
