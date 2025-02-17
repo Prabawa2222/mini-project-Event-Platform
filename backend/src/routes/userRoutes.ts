@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { UserController } from "../controllers/userController";
+import { ForgotPasswordDto, ResetPasswordDto } from "../types";
 
 const router = Router();
 const userController = new UserController();
@@ -16,22 +17,10 @@ router.put("/profile/:id", (req, res) =>
 router.post("/password/:id", (req, res) =>
   userController.changeUserPassword(req, res)
 );
+router.post("/forgot-password", userController.forgotPassword);
 
-router.post("/forgot-password", async (req, res, next) => {
-  try {
-    await userController.forgotPassword(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post("/reset-password", async (req, res, next) => {
-  try {
-    await userController.resetPassword(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Reset Password
+router.post("/reset-password", userController.resetPassword);
 
 //admin only
 // to be updated with cronjobs

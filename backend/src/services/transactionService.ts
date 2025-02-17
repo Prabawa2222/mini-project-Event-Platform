@@ -1,13 +1,21 @@
-import { PointsType, PrismaClient, TransactionStatus } from "@prisma/client";
+import {
+  PointsType,
+  PrismaClient,
+  Transaction,
+  TransactionStatus,
+} from "@prisma/client";
 import { TransactionRequest, TransactionWithImage } from "../types";
 import { ImageService } from "./utilService";
+import { EmailService } from "./emailService";
 export class TransactionService {
   private prisma: PrismaClient;
   private imageService: ImageService;
+  private emailService: EmailService;
 
   constructor() {
     this.prisma = new PrismaClient();
     this.imageService = new ImageService();
+    this.emailService = new EmailService();
   }
 
   async createTransaction(data: TransactionRequest) {
@@ -537,20 +545,26 @@ export class TransactionService {
     }
   }
 
-  async approveTransaction(transactionId: number, organizerId: number) {
-    try {
-      const transaction = await this.prisma.transaction.findFirst({
-        where: {
-          id: transactionId,
-          event: {
-            organizerId: organizerId,
-          },
-          status: "WAITING_FOR_ADMIN_CONFIRMATION",
+  async approveTransaction(
+    transactionId: number,
+    organizerId: number
+  ): Promise<Transaction> {
+    return await this.prisma.$transaction(async (prisma) => {
+      const transaction = await prisma.transaction.findUnique({
+        where: { id: transactionId },
+        include: {
+          user: true,
+          event: true,
+          ticketType: true,
         },
       });
 
       if (!transaction) {
-        throw new Error("Transaction not found or not authorized");
+        throw new Error("Transaction not found");
+      }
+
+      if (transaction.event.organizerId !== organizerId) {
+        throw new Error("Unauthorized to approve this transaction");
       }
 
       const updatedTransaction = await this.prisma.transaction.update({
@@ -561,62 +575,109 @@ export class TransactionService {
         },
       });
 
+      await this.emailService.sendTransactionApprovalEmail(
+        transaction.user.email,
+        {
+          eventName: transaction.event.name,
+          ticketType: transaction.ticketType.name,
+          quantity: transaction.quantity,
+          totalPrice: transaction.totalPrice,
+        }
+      );
+
       return updatedTransaction;
-    } catch (error) {
-      console.error("Error approving transaction:", error);
-      throw new Error("Failed to approve transaction");
-    }
+    });
   }
 
   async rejectTransaction(
     transactionId: number,
     organizerId: number,
     rejectionReason: string
-  ) {
-    try {
-      const transaction = await this.prisma.transaction.findFirst({
-        where: {
-          id: transactionId,
-          event: {
-            organizerId: organizerId,
-          },
-          status: "WAITING_FOR_ADMIN_CONFIRMATION",
+  ): Promise<Transaction> {
+    return await this.prisma.$transaction(async (prisma) => {
+      const transaction = await prisma.transaction.findUnique({
+        where: { id: transactionId },
+        include: {
+          user: true,
+          event: true,
+          ticketType: true,
         },
       });
 
       if (!transaction) {
-        throw new Error("Transaction not found or not authorized");
+        throw new Error("Transaction not found");
       }
 
-      // Update transaction status to REJECTED
-      const updatedTransaction = await this.prisma.transaction.update({
+      if (transaction.event.organizerId !== organizerId) {
+        throw new Error("Unauthorized to reject this transaction");
+      }
+
+      // Restore resources
+      await Promise.all([
+        // Restore seats
+        prisma.ticketType.update({
+          where: { id: transaction.ticketTypeId },
+          data: {
+            quantity: {
+              increment: transaction.quantity,
+            },
+          },
+        }),
+
+        // Return points if used
+        transaction.pointsUsed > 0 &&
+          prisma.user.update({
+            where: { id: transaction.userId },
+            data: {
+              points: {
+                increment: transaction.pointsUsed,
+              },
+            },
+          }),
+
+        // Return coupon if used
+        transaction.couponId &&
+          prisma.coupon.update({
+            where: { id: transaction.couponId },
+            data: {
+              isUsed: false,
+              usedAt: null,
+            },
+          }),
+
+        // Decrement promotion usage if used
+        transaction.promotionId &&
+          prisma.promotion.update({
+            where: { id: transaction.promotionId },
+            data: {
+              currentUses: {
+                decrement: 1,
+              },
+            },
+          }),
+      ]);
+
+      const updatedTransaction = await prisma.transaction.update({
         where: { id: transactionId },
         data: {
           status: "REJECTED",
-          updatedAt: new Date(),
         },
+        include: { user: true },
       });
 
-      await this.prisma.ticketType.update({
-        where: { id: transaction.ticketTypeId },
-        data: {
-          quantity: { increment: transaction.quantity },
+      // Send rejection email
+      await this.emailService.sendTransactionRejectionEmail(
+        transaction.user.email,
+        {
+          eventName: transaction.event.name,
+          ticketType: transaction.ticketType.name,
+          quantity: transaction.quantity,
+          totalPrice: transaction.totalPrice,
         },
-      });
-
-      if (transaction.pointsUsed > 0) {
-        await this.prisma.user.update({
-          where: { id: transaction.userId },
-          data: {
-            points: { increment: transaction.pointsUsed },
-          },
-        });
-      }
+        rejectionReason
+      );
 
       return updatedTransaction;
-    } catch (error) {
-      console.error("Error rejecting transaction:", error);
-      throw new Error("Failed to reject transaction");
-    }
+    });
   }
 }

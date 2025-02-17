@@ -2,7 +2,13 @@ import { createTestAccount, createTransport } from "nodemailer";
 
 export const initializeEmailTransporter = async () => {
   if (process.env.NODE_ENV === "development") {
+    console.log("Creating test email account...");
     const testAccount = await createTestAccount();
+    console.log("Test email credentials:", {
+      user: testAccount.user,
+      pass: testAccount.pass,
+    });
+
     return createTransport({
       host: "smtp.ethereal.email",
       port: 587,

@@ -133,6 +133,7 @@ export class EventService {
       ticketType: transaction.ticketType.name,
       quantity: transaction.quantity,
       purchaseDate: transaction.createdAt,
+      price: transaction.ticketType.price,
     }));
 
     return attendees;

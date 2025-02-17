@@ -245,6 +245,20 @@ const EventDetailsPage = () => {
             <TableRow>
               <TableHead>Attendees ({attendeesData?.total || 0})</TableHead>
               <TableCell>
+                <div className="space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      router.push(
+                        `/organizer/dashboard/events/${event.slug}/attendees`
+                      )
+                    }
+                  >
+                    View All Attendees
+                  </Button>
+                </div>
+              </TableCell>
+              {/* <TableCell>
                 {attendeesData?.data && attendeesData.data.length > 0 ? (
                   <div className="grid grid-cols-2 gap-4">
                     {attendeesData.data.map((attendee) => (
@@ -269,7 +283,7 @@ const EventDetailsPage = () => {
                 ) : (
                   <p className="text-gray-500">No attendees yet</p>
                 )}
-              </TableCell>
+              </TableCell> */}
             </TableRow>
           </Table>
         </CardContent>

@@ -1,8 +1,11 @@
 {
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/page": "app/page.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/customer/transactions/page": "app/customer/transactions/page.js",
-  "/(auth)/register/page": "app/(auth)/register/page.js"
+  "/organizer/dashboard/events/[slug]/attendees/page": "app/organizer/dashboard/events/[slug]/attendees/page.js",
+  "/organizer/dashboard/transactions/page": "app/organizer/dashboard/transactions/page.js",
+  "/organizer/dashboard/transactions/[transactionsId]/page": "app/organizer/dashboard/transactions/[transactionsId]/page.js",
+  "/organizer/dashboard/events/page": "app/organizer/dashboard/events/page.js",
+  "/organizer/dashboard/events/[slug]/page": "app/organizer/dashboard/events/[slug]/page.js",
+  "/organizer/dashboard/page": "app/organizer/dashboard/page.js"
 }

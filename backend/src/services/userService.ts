@@ -292,60 +292,80 @@ export class UserService {
     console.log(`${expiredPoints.count} points records expired.`);
   }
 
-  async forgotPassword(data: ForgotPasswordDto): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { email: data.email },
-    });
-
-    if (!user) {
-      // Don't reveal whether the email exists
-      return;
-    }
-
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(resetToken)
-      .digest("hex");
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        resetToken: hashedToken,
-        resetTokenExpiry: new Date(Date.now() + 3600000), // 1 hour
-      },
-    });
-
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
+  async forgotPassword(
+    data: ForgotPasswordDto
+  ): Promise<{ previewUrl?: string }> {
     try {
-      const info = await this.emailTransporter.sendMail({
-        from: `"${process.env.APP_NAME}" <${process.env.EMAIL_FROM}>`,
-        to: user.email,
-        subject: "Password Reset Request",
-        html: `
-          <h1>Password Reset Request</h1>
-          <p>You requested a password reset. Click the link below to reset your password:</p>
-          <a href="${resetUrl}">Reset Password</a>
-          <p>This link will expire in 1 hour.</p>
-          <p>If you didn't request this, please ignore this email.</p>
-        `,
+      console.log("Starting forgot password process for:", data.email);
+
+      const user = await this.prisma.user.findUnique({
+        where: { email: data.email },
       });
 
-      if (process.env.NODE_ENV === "development") {
-        const previewUrl = nodemailer.getTestMessageUrl(info);
-        console.log("Preview URL:", previewUrl);
+      if (!user) {
+        console.log("No user found with email:", data.email);
+        return {};
       }
-    } catch (error) {
-      // Rollback the reset token if email fails
+
+      console.log("User found, generating reset token");
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+      console.log("Updating user with reset token");
       await this.prisma.user.update({
         where: { id: user.id },
         data: {
-          resetToken: null,
-          resetTokenExpiry: null,
+          resetToken: hashedToken,
+          resetTokenExpiry: new Date(Date.now() + 3600000),
         },
       });
-      throw new Error("Failed to send reset email");
+
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+      console.log("Reset URL generated:", resetUrl);
+
+      try {
+        console.log("Attempting to send email");
+        const info = await this.emailTransporter.sendMail({
+          from: `"${process.env.APP_NAME}" <${process.env.EMAIL_FROM}>`,
+          to: user.email,
+          subject: "Password Reset Request",
+          html: `
+            <h1>Password Reset Request</h1>
+            <p>You requested a password reset. Click the link below to reset your password:</p>
+            <a href="${resetUrl}">Reset Password</a>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, please ignore this email.</p>
+          `,
+        });
+
+        console.log("Email sent successfully");
+        console.log("Email info:", info);
+
+        if (process.env.NODE_ENV === "development") {
+          const previewUrl = nodemailer.getTestMessageUrl(info);
+          console.log("Preview URL for test email:", previewUrl);
+          return previewUrl ? { previewUrl } : {};
+        }
+
+        return {};
+      } catch (emailError) {
+        console.error("Failed to send email:", emailError);
+        // Rollback the reset token
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            resetToken: null,
+            resetTokenExpiry: null,
+          },
+        });
+        throw emailError;
+      }
+    } catch (error) {
+      console.error("Error in forgotPassword:", error);
+      throw error;
     }
   }
 

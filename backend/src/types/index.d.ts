@@ -210,3 +210,12 @@ export interface CronJob {
 export interface JobsRegistry {
   [key: string]: CronJob;
 }
+
+export interface ForgotPasswordDto {
+  email: string;
+}
+
+export interface ResetPasswordDto {
+  token: string;
+  newPassword: string;
+}

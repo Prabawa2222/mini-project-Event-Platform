@@ -133,24 +133,61 @@ export class UserController {
     }
   };
 
-  forgotPassword = async (req: Request, res: Response): Promise<Response> => {
+  forgotPassword = async (req: Request, res: Response): Promise<void> => {
     try {
-      await this.userService.forgotPassword(req.body);
-      return res.status(200).json({
+      const { email } = req.body;
+
+      if (!email || typeof email !== "string") {
+        res.status(400).json({
+          success: false,
+          message: "Valid email is required",
+        });
+        return;
+      }
+
+      const result = await this.userService.forgotPassword({ email });
+
+      res.status(200).json({
+        success: true,
         message:
           "If an account exists with that email, a password reset link has been sent",
+        ...(result.previewUrl && { previewUrl: result.previewUrl }),
       });
     } catch (error: any) {
-      return res.status(500).json({ message: "Failed to process request" });
+      res.status(500).json({
+        success: false,
+        message: "Failed to process request",
+      });
     }
   };
 
-  resetPassword = async (req: Request, res: Response): Promise<Response> => {
+  resetPassword = async (req: Request, res: Response): Promise<void> => {
     try {
-      await this.userService.resetPassword(req.body);
-      return res.status(200).json({ message: "Password reset successfully" });
+      const { token, newPassword } = req.body;
+
+      if (
+        !token ||
+        !newPassword ||
+        typeof token !== "string" ||
+        typeof newPassword !== "string"
+      ) {
+        res.status(400).json({
+          success: false,
+          message: "Token and new password are required",
+        });
+        return;
+      }
+
+      await this.userService.resetPassword({ token, newPassword });
+      res.status(200).json({
+        success: true,
+        message: "Password reset successfully",
+      });
     } catch (error: any) {
-      return res.status(400).json({ message: error.message });
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
     }
   };
 

@@ -2,6 +2,7 @@
 
 import { useFormik } from "formik";
 import { signIn, useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import * as Yup from "yup";
@@ -132,13 +133,20 @@ export default function LoginPage() {
               {formik.isSubmitting ? "Signing in..." : "Sign in"}
             </button>
           </div>
-          <div className="text-sm text-center">
-            <a
+
+          <div className="text-sm text-cente flex flex-col items-center">
+            <Link
+              href={"/forgot-password"}
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
+              Forgot Password
+            </Link>
+            <Link
               href="/register"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
               Don't have an account? Register here
-            </a>
+            </Link>
           </div>
         </form>
       </div>
