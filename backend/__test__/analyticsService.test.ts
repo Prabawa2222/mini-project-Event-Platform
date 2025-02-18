@@ -1,7 +1,6 @@
 import { PrismaClient, TransactionStatus } from "@prisma/client";
 import { EventAnalyticsService } from "../src/services/analyticsService";
 
-// Mock PrismaClient
 jest.mock("@prisma/client", () => ({
   PrismaClient: jest.fn(),
   TransactionStatus: {
