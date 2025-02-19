@@ -7,48 +7,8 @@ export class EventAnalyticsService {
     this.prisma = new PrismaClient();
   }
 
-  async getEventAnalytics(eventId: number) {
+  async getOrganizerDashboardStats(organizerId: number, timeframe: string) {
     try {
-      // Validate event exists
-      const eventExists = await this.prisma.event.findUnique({
-        where: { id: eventId },
-        select: { id: true },
-      });
-
-      if (!eventExists) {
-        throw new Error(`Event with ID ${eventId} not found`);
-      }
-
-      const [
-        totalSales,
-        ticketsSold,
-        averageRating,
-        salesByTicketType,
-        transactionsStatuses,
-      ] = await Promise.all([
-        this.getTotalSales(eventId),
-        this.getTicketsSold(eventId),
-        this.getAverageRating(eventId),
-        this.getSalesByTicketType(eventId),
-        this.getTransactionStatuses(eventId),
-      ]);
-
-      return {
-        totalSales,
-        ticketsSold,
-        averageRating,
-        salesByTicketType,
-        transactionsStatuses,
-      };
-    } catch (error) {
-      console.error("Error in getEventAnalytics:", error);
-      throw error;
-    }
-  }
-
-  async getOrganizerAnalytics(organizerId: number) {
-    try {
-      // Validate organizer exists
       const organizerExists = await this.prisma.user.findUnique({
         where: { id: organizerId },
         select: { id: true },
@@ -61,90 +21,150 @@ export class EventAnalyticsService {
       const [
         totalEvents,
         eventsByCategory,
-        totalRevenue,
+        revenueStats,
         bestSellingEvents,
         upcomingEvents,
+        recentTransactions,
       ] = await Promise.all([
         this.getTotalEvents(organizerId),
         this.getEventsByCategory(organizerId),
-        this.getTotalRevenue(organizerId),
+        this.getRevenueStats(organizerId, timeframe),
         this.getBestSellingEvents(organizerId),
         this.getUpcomingEvents(organizerId),
+        this.getRecentTransactions(organizerId),
       ]);
 
       return {
         totalEvents,
         eventsByCategory,
-        totalRevenue,
+        revenueStats,
         bestSellingEvents,
         upcomingEvents,
+        recentTransactions,
       };
     } catch (error) {
-      console.error("Error in getOrganizerAnalytics:", error);
+      console.error("Error in getOrganizerDashboardStats:", error);
       throw error;
     }
   }
 
-  private async getTotalSales(eventId: number): Promise<number> {
-    const result = await this.prisma.transaction.aggregate({
+  private async getRevenueStats(organizerId: number, timeframe: string) {
+    const today = new Date();
+    let startDate = new Date();
+
+    switch (timeframe) {
+      case "daily":
+        startDate.setDate(today.getDate() - 7);
+        break;
+      case "weekly":
+        startDate.setDate(today.getDate() - 30);
+        break;
+      case "monthly":
+        startDate.setMonth(today.getMonth() - 12);
+        break;
+      default:
+        startDate.setMonth(today.getMonth() - 1);
+    }
+
+    const transactions = await this.prisma.transaction.findMany({
       where: {
-        eventId,
+        event: {
+          organizerId,
+        },
         status: TransactionStatus.DONE,
+        createdAt: {
+          gte: startDate,
+          lte: today,
+        },
       },
-      _sum: {
+      select: {
         totalPrice: true,
+        createdAt: true,
       },
     });
-    return result._sum.totalPrice || 0;
+
+    const totalRevenue = transactions.reduce((sum, t) => sum + t.totalPrice, 0);
+    const revenueTimeSeries = this.groupTransactionsByTimeframe(
+      transactions,
+      timeframe
+    );
+
+    return {
+      totalRevenue,
+      revenueTimeSeries,
+    };
   }
 
-  private async getTicketsSold(eventId: number): Promise<number> {
-    const result = await this.prisma.transaction.aggregate({
+  private async getRecentTransactions(organizerId: number) {
+    return await this.prisma.transaction.findMany({
       where: {
-        eventId,
-        status: TransactionStatus.DONE,
+        event: {
+          organizerId,
+        },
       },
-      _sum: {
-        quantity: true,
-      },
-    });
-    return result._sum.quantity || 0;
-  }
-
-  private async getAverageRating(eventId: number): Promise<number> {
-    const result = await this.prisma.review.aggregate({
-      where: {
-        eventId,
-      },
-      _avg: {
-        rating: true,
-      },
-    });
-    return result._avg.rating || 0;
-  }
-
-  private async getSalesByTicketType(eventId: number) {
-    return await this.prisma.transaction.groupBy({
-      by: ["ticketTypeId"],
-      where: {
-        eventId,
-        status: TransactionStatus.DONE,
-      },
-      _sum: {
-        quantity: true,
+      select: {
+        id: true,
         totalPrice: true,
+        createdAt: true,
+        status: true,
+        event: {
+          select: {
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            name: true,
+          },
+        },
       },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 5,
     });
   }
 
-  private async getTransactionStatuses(eventId: number) {
-    return await this.prisma.transaction.groupBy({
-      by: ["status"],
-      where: {
-        eventId,
-      },
-      _count: true,
+  private groupTransactionsByTimeframe(
+    transactions: { totalPrice: number; createdAt: Date }[],
+    timeframe: string
+  ) {
+    const groupedData = new Map<string, number>();
+
+    transactions.forEach((transaction) => {
+      let key: string;
+      const date = new Date(transaction.createdAt);
+
+      switch (timeframe) {
+        case "daily":
+          key = date.toISOString().split("T")[0];
+          break;
+        case "weekly":
+          const weekNum = Math.ceil((date.getDate() + 6 - date.getDay()) / 7);
+          key = `${date.getFullYear()}-W${weekNum}`;
+          break;
+        case "monthly":
+          key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+            2,
+            "0"
+          )}`;
+          break;
+        default:
+          key = date.toISOString().split("T")[0];
+      }
+
+      groupedData.set(
+        key,
+        (groupedData.get(key) || 0) + transaction.totalPrice
+      );
     });
+
+    return Array.from(groupedData.entries())
+      .map(([period, amount]) => ({
+        period,
+        amount,
+      }))
+      .sort((a, b) => a.period.localeCompare(b.period));
   }
 
   private async getTotalEvents(organizerId: number): Promise<number> {
@@ -249,6 +269,19 @@ export class EventAnalyticsService {
     eventId: number,
     interval: "daily" | "weekly" | "monthly"
   ) {
+    // First, get the event to determine the date range
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+      select: {
+        startDate: true,
+        endDate: true,
+      },
+    });
+
+    if (!event) {
+      throw new Error(`Event with ID ${eventId} not found`);
+    }
+
     const transactions = await this.prisma.transaction.findMany({
       where: {
         eventId,
@@ -263,14 +296,69 @@ export class EventAnalyticsService {
       },
     });
 
-    return this.groupSalesByTimeInterval(transactions, interval);
+    return this.groupSalesByTimeInterval(
+      transactions,
+      interval,
+      event.startDate,
+      event.endDate
+    );
   }
 
   private groupSalesByTimeInterval(
     transactions: { createdAt: Date; totalPrice: number }[],
-    interval: "daily" | "weekly" | "monthly"
+    interval: "daily" | "weekly" | "monthly",
+    startDate: Date,
+    endDate: Date
   ) {
     const salesMap = new Map<string, number>();
+
+    const currentDate = new Date(startDate);
+    const end = new Date(endDate);
+
+    while (currentDate <= end) {
+      let key: string;
+
+      switch (interval) {
+        case "daily":
+          key = currentDate.toISOString().split("T")[0];
+          break;
+        case "weekly": {
+          // Get the week number using ISO week date system
+          const date = new Date(currentDate);
+          const dayNum = date.getUTCDay() || 7;
+          date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+          const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+          const weekNum = Math.ceil(
+            ((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
+          );
+          key = `${currentDate.getFullYear()}-W${String(weekNum).padStart(
+            2,
+            "0"
+          )}`;
+          break;
+        }
+        case "monthly":
+          key = `${currentDate.getFullYear()}-${String(
+            currentDate.getMonth() + 1
+          ).padStart(2, "0")}`;
+          break;
+      }
+
+      salesMap.set(key, 0); // Initialize period with 0 sales
+
+      // Increment date based on interval
+      switch (interval) {
+        case "daily":
+          currentDate.setDate(currentDate.getDate() + 1);
+          break;
+        case "weekly":
+          currentDate.setDate(currentDate.getDate() + 7);
+          break;
+        case "monthly":
+          currentDate.setMonth(currentDate.getMonth() + 1);
+          break;
+      }
+    }
 
     transactions.forEach((transaction) => {
       let key: string;
@@ -280,10 +368,16 @@ export class EventAnalyticsService {
         case "daily":
           key = date.toISOString().split("T")[0];
           break;
-        case "weekly":
-          const week = Math.floor(date.getDate() / 7);
-          key = `${date.getFullYear()}-W${week}`;
+        case "weekly": {
+          const dayNum = date.getUTCDay() || 7;
+          date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+          const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+          const weekNum = Math.ceil(
+            ((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
+          );
+          key = `${date.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
           break;
+        }
         case "monthly":
           key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
             2,
@@ -292,12 +386,16 @@ export class EventAnalyticsService {
           break;
       }
 
-      salesMap.set(key, (salesMap.get(key) || 0) + transaction.totalPrice);
+      if (salesMap.has(key)) {
+        salesMap.set(key, (salesMap.get(key) || 0) + transaction.totalPrice);
+      }
     });
 
-    return Array.from(salesMap.entries()).map(([period, amount]) => ({
-      period,
-      amount,
-    }));
+    return Array.from(salesMap.entries())
+      .map(([period, amount]) => ({
+        period,
+        amount,
+      }))
+      .sort((a, b) => a.period.localeCompare(b.period));
   }
 }

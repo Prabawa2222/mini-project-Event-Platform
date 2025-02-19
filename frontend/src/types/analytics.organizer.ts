@@ -1,16 +1,5 @@
-import { LucideIcon } from "lucide-react";
-
-export interface CategoryCount {
-  _count: number;
-  category: string;
-}
-
-export interface BestSellingEvent {
-  name: string;
-  salesCount: number;
-}
-
-export interface UpcomingEvent {
+export interface Event {
+  id: string;
   name: string;
   startDate: string;
   availableSeats: number;
@@ -19,28 +8,57 @@ export interface UpcomingEvent {
   };
 }
 
-export interface DashboardStatistics {
-  totalEvents: number;
-  eventsByCategory: CategoryCount[];
+export interface Transaction {
+  id: string;
+  totalPrice: number;
+  status: "PENDING" | "DONE";
+  createdAt: string;
+  event: {
+    name: string;
+  };
+  user: {
+    name: string;
+  };
+}
+
+export interface BestSellingEvent {
+  id: string;
+  name: string;
+  salesCount: number;
+}
+
+export interface CategoryDataPoint {
+  category: string;
+  _count: number;
+}
+
+export interface RevenueTimeSeries {
+  period: string;
+  amount: number;
+}
+
+export interface RevenueStats {
   totalRevenue: number;
+  revenueTimeSeries: RevenueTimeSeries[];
+}
+
+export interface DashboardData {
+  totalEvents: number;
+  eventsByCategory: CategoryDataPoint[];
+  revenueStats: RevenueStats;
   bestSellingEvents: BestSellingEvent[];
-  upcomingEvents: UpcomingEvent[];
+  upcomingEvents: Event[];
+  recentTransactions: Transaction[];
 }
 
 export interface StatCardProps {
   title: string;
   value: string | number;
-  icon: LucideIcon;
   description?: string;
 }
 
 export interface EmptyStateProps {
   message: string;
-}
-
-export interface CategoryDataPoint {
-  name: string;
-  events: number;
 }
 
 export type TimeframeOption = "daily" | "weekly" | "monthly";

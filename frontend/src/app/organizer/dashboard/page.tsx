@@ -17,29 +17,18 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 
+import { Loader2 } from "lucide-react";
 import {
-  Calendar,
-  ChevronDown,
-  Ticket,
-  DollarSign,
-  Users,
-  ArrowUpRight,
-  ArrowDownRight,
-  RefreshCcw,
-  AlertCircle,
-  TrendingUp,
-} from "lucide-react";
-import {
-  CategoryDataPoint,
-  DashboardStatistics,
+  DashboardData,
   EmptyStateProps,
   StatCardProps,
   TimeframeOption,
+  Transaction,
+  Event, // Add Event type import
 } from "@/types/analytics.organizer";
 import {
   Select,
@@ -48,24 +37,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useOrganizer } from "@/context/organizer/OrganizerContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
-const StatCard: React.FC<StatCardProps> = ({
-  title,
-  value,
-  icon: Icon,
-  description,
-}) => (
+const StatCard: React.FC<StatCardProps> = ({ title, value, description }) => (
   <Card className="h-full">
     <CardHeader className="flex flex-row items-center justify-between pb-2">
-      <div className="p-2 bg-primary/10 rounded-lg">
-        {/* <Icon className="h-5 w-5 text-primary" /> */}
-      </div>
+      <CardTitle className="text-sm font-medium">{title}</CardTitle>
     </CardHeader>
     <CardContent>
       <div className="text-2xl font-bold">{value}</div>
-      <p className="text-sm text-muted-foreground mt-1">{title}</p>
       {description && (
-        <p className="text-xs text-muted-foreground mt-2">{description}</p>
+        <p className="text-sm text-muted-foreground mt-2">{description}</p>
       )}
     </CardContent>
   </Card>
@@ -73,62 +57,165 @@ const StatCard: React.FC<StatCardProps> = ({
 
 const EmptyState: React.FC<EmptyStateProps> = ({ message }) => (
   <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-    <AlertCircle className="h-8 w-8 mb-2" />
     <p>{message}</p>
   </div>
 );
 
-const DashboardOrganizerPage = () => {
+const BestSellingEventCard: React.FC<{ dashboardData: DashboardData }> = ({
+  dashboardData,
+}) => {
+  const bestEvent = dashboardData.bestSellingEvents[0];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Best Selling Event</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <StatCard
+          title="Best Selling Event"
+          value={bestEvent?.name ?? "No events"}
+          description={
+            bestEvent && bestEvent.salesCount > 0
+              ? `${bestEvent.salesCount} tickets sold`
+              : "No tickets sold"
+          }
+        />
+      </CardContent>
+    </Card>
+  );
+};
+
+const RecentTransactions: React.FC<{
+  transactions: Transaction[];
+  formatDate: (date: string) => string;
+  formatCurrency: (value: number) => string;
+}> = ({ transactions, formatDate, formatCurrency }) => {
+  if (transactions.length === 0) {
+    return <EmptyState message="No recent transactions" />;
+  }
+
+  return (
+    <div className="space-y-4">
+      {transactions.map((transaction) => (
+        <div
+          key={transaction.id}
+          className="flex justify-between items-center p-4 border rounded-lg"
+        >
+          <div>
+            <div className="font-medium">{transaction.event.name}</div>
+            <div className="text-sm text-muted-foreground">
+              {transaction.user.name} • {formatDate(transaction.createdAt)}
+            </div>
+          </div>
+          <div>
+            <div className="font-medium">
+              {formatCurrency(transaction.totalPrice)}
+            </div>
+            <div
+              className={`text-sm ${
+                transaction.status === "DONE"
+                  ? "text-green-600"
+                  : "text-yellow-600"
+              }`}
+            >
+              {transaction.status}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const UpcomingEvents: React.FC<{
+  events: Event[];
+  formatDate: (date: string) => string;
+}> = ({ events, formatDate }) => {
+  if (events.length === 0) {
+    return <EmptyState message="No upcoming events" />;
+  }
+
+  return (
+    <div className="space-y-4">
+      {events.map((event) => (
+        <div
+          key={event.id}
+          className="flex items-center justify-between border-b last:border-0 pb-4"
+        >
+          <div>
+            <div className="font-medium">{event.name}</div>
+            <div className="text-sm text-muted-foreground">
+              {formatDate(event.startDate)}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="font-medium">
+              {event._count.transactions} / {event.availableSeats}
+            </div>
+            <div className="text-sm text-muted-foreground">Tickets Sold</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const DashboardOrganizerPage: React.FC = () => {
+  const { organizerId } = useOrganizer();
   const [timeframe, setTimeframe] = useState<TimeframeOption>("monthly");
-  const [statistics, setStatistics] = useState<DashboardStatistics>({
+  const [dashboardData, setDashboardData] = useState<DashboardData>({
     totalEvents: 0,
     eventsByCategory: [],
-    totalRevenue: 0,
+    revenueStats: {
+      totalRevenue: 0,
+      revenueTimeSeries: [],
+    },
     bestSellingEvents: [],
     upcomingEvents: [],
+    recentTransactions: [],
   });
-
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDashboardData = async () => {
       try {
+        setLoading(true);
+        setError("");
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API}/api/analytics/organizer/1`
+          `${process.env.NEXT_PUBLIC_API}/api/analytics/organizer/${organizerId}?timeframe=${timeframe}`
         );
-        const data: DashboardStatistics = await response.json();
-        setStatistics(data);
-      } catch (error) {
-        console.error("Error fetching analytics:", error);
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+        const data = await response.json();
+        setDashboardData(data);
+      } catch (error: any) {
+        setError(error.message || "An error occurred");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
 
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
+    fetchDashboardData();
+  }, [organizerId, timeframe]);
 
-  const categoryData: CategoryDataPoint[] = statistics.eventsByCategory.map(
-    (cat) => ({
-      name: cat.category,
-      events: cat._count,
-    })
-  );
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  if (error) {
+    return (
+      <Alert variant="destructive" className="m-6">
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -149,32 +236,54 @@ const DashboardOrganizerPage = () => {
         </Select>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue Over Time</CardTitle>
+          <CardDescription>Revenue trends for {timeframe} view</CardDescription>
+        </CardHeader>
+        <CardContent className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={dashboardData.revenueStats.revenueTimeSeries}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="period" />
+              <YAxis tickFormatter={(value) => formatCurrency(value)} />
+              <Tooltip formatter={(value) => formatCurrency(value as number)} />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="amount"
+                stroke="#3b82f6"
+                name="Revenue"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Events"
-          value={statistics.totalEvents}
-          icon={Calendar}
+          value={dashboardData.totalEvents.toString()}
+          description="Total active events"
         />
         <StatCard
           title="Total Revenue"
-          value={formatCurrency(statistics.totalRevenue)}
-          icon={DollarSign}
+          value={formatCurrency(dashboardData.revenueStats.totalRevenue)}
+          description="Overall revenue"
         />
         <StatCard
           title="Best Selling Event"
-          value={statistics.bestSellingEvents[0]?.name || "No events yet"}
+          value={dashboardData.bestSellingEvents[0]?.name || "No events"}
           description={
-            statistics.bestSellingEvents[0]?.salesCount > 0
-              ? `${statistics.bestSellingEvents[0].salesCount} tickets sold`
-              : "No tickets sold yet"
+            dashboardData.bestSellingEvents[0]?.salesCount > 0
+              ? `${dashboardData.bestSellingEvents[0].salesCount} tickets sold`
+              : "No tickets sold"
           }
-          icon={Ticket}
         />
         <StatCard
           title="Upcoming Events"
-          value={statistics.upcomingEvents.length}
-          description="Events in the next 30 days"
-          icon={TrendingUp}
+          value={dashboardData.upcomingEvents.length.toString()}
+          description="Events in next 30 days"
         />
       </div>
 
@@ -187,15 +296,15 @@ const DashboardOrganizerPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="h-80">
-            {categoryData.length > 0 ? (
+            {dashboardData.eventsByCategory.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryData}>
+                <BarChart data={dashboardData.eventsByCategory}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  <XAxis dataKey="category" />
                   <YAxis allowDecimals={false} />
                   <Tooltip />
                   <Bar
-                    dataKey="events"
+                    dataKey="_count"
                     fill="#3b82f6"
                     name="Number of Events"
                   />
@@ -207,37 +316,22 @@ const DashboardOrganizerPage = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Best Selling Events</CardTitle>
-            <CardDescription>Events by ticket sales</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {statistics.bestSellingEvents.length > 0 ? (
-              <div className="space-y-4">
-                {statistics.bestSellingEvents.map((event, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        {index + 1}
-                      </div>
-                      <span className="font-medium">{event.name}</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {event.salesCount} tickets
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyState message="No sales data available" />
-            )}
-          </CardContent>
-        </Card>
+        <BestSellingEventCard dashboardData={dashboardData} />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Transactions</CardTitle>
+          <CardDescription>Latest ticket sales and updates</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RecentTransactions
+            transactions={dashboardData.recentTransactions}
+            formatDate={formatDate}
+            formatCurrency={formatCurrency}
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -245,33 +339,10 @@ const DashboardOrganizerPage = () => {
           <CardDescription>Next scheduled events</CardDescription>
         </CardHeader>
         <CardContent>
-          {statistics.upcomingEvents.length > 0 ? (
-            <div className="space-y-4">
-              {statistics.upcomingEvents.map((event, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between border-b last:border-0 pb-4"
-                >
-                  <div>
-                    <div className="font-medium">{event.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {formatDate(event.startDate)}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium">
-                      {event._count.transactions} / {event.availableSeats}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Tickets Sold
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState message="No upcoming events" />
-          )}
+          <UpcomingEvents
+            events={dashboardData.upcomingEvents}
+            formatDate={formatDate}
+          />
         </CardContent>
       </Card>
     </div>

@@ -10,10 +10,9 @@ import EventList from "@/components/karcis.com/home/listEvent.home.component";
 
 export default function Home() {
   const [events, setEvents] = useState([]);
-  const API_URL = process.env.NEXT_PUBLIC_API;
 
   useEffect(() => {
-    fetch(`${API_URL}/events/up-coming`)
+    fetch(`${process.env.NEXT_PUBLIC_API}/events/up-coming`)
       .then((res) => res.json())
       .then((data) => setEvents(data))
       .catch((err) => console.error("Error fetching events:", err));

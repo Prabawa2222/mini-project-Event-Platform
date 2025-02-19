@@ -94,7 +94,7 @@ const TransactionsOrganizerPage = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              ${summary?.overallSummary.totalRevenue.toLocaleString() ?? 0}
+              Rp {summary?.overallSummary.totalRevenue.toLocaleString() ?? 0}
             </p>
           </CardContent>
         </Card>
@@ -376,7 +376,7 @@ const TransactionsOrganizerPage = () => {
                           <td className="p-4">{transaction.ticketType.name}</td>
                           <td className="p-4">{transaction.quantity}</td>
                           <td className="p-4">
-                            ${transaction.totalPrice.toLocaleString()}
+                            Rp {transaction.totalPrice.toLocaleString()}
                           </td>
                           <td className="p-4">
                             <Button variant="outline" size="sm" asChild>
