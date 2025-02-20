@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import HeroTransaction from "./heroTrasaction";
+import { formatCurrency } from "@/lib/utils";
 
 export interface EventDetailTransactionProps {
   eventData: {
@@ -77,7 +78,7 @@ const EventDetailTransaction: React.FC<EventDetailTransactionProps> = ({
             <div key={type} className="flex justify-between">
               <p>{`${qty} x ${type}`}</p>
               <p className="font-semibold">
-                Rp. {(ticket.price * qty).toLocaleString()}
+                {formatCurrency(ticket.price * qty).toLocaleString()}
               </p>
             </div>
           ) : null;

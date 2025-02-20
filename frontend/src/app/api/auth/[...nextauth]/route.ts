@@ -24,7 +24,11 @@ export const authOptions: AuthOptions = {
           const data = await response.json();
           console.log("Login API response:", data);
 
-          if (response.ok && data.user) {
+          if (!response.ok) {
+            throw new Error(data.message || "Invalid email or password");
+          }
+
+          if (data.user) {
             return {
               id: data.user.id,
               email: data.user.email,
@@ -33,10 +37,13 @@ export const authOptions: AuthOptions = {
               accessToken: data.token,
             };
           }
-          return null;
-        } catch (error) {
+
+          throw new Error("Login failed. Please try again.");
+        } catch (error: any) {
           console.error("Auth error:", error);
-          return null;
+          throw new Error(
+            error.message || "Something went wrong. Please try again."
+          );
         }
       },
     }),

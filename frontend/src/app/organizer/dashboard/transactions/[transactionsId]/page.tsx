@@ -223,7 +223,7 @@ const TransactionsIdOrganizerPage = () => {
               <div>
                 <strong>Total Price:</strong>
                 <p className="font-medium mt-1">
-                  Rp {transaction?.totalPrice?.toLocaleString() ?? "0"}
+                  Rp. {transaction?.totalPrice?.toLocaleString() ?? "0"}
                 </p>
               </div>
               <div>

@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Attendee {
@@ -71,13 +71,10 @@ const AttendeeList = ({ data, total }: AttendeeListProps) => {
                       {attendee.quantity}
                     </TableCell>
                     <TableCell className="text-right">
-                      Rp.{Number(attendee.price).toLocaleString()}
+                      {formatCurrency(attendee.price)}
                     </TableCell>
                     <TableCell className="text-right">
-                      Rp.
-                      {(
-                        Number(attendee.price) * attendee.quantity
-                      ).toLocaleString()}
+                      {formatCurrency(attendee.price * attendee.quantity)}
                     </TableCell>
                     <TableCell className="text-right">
                       {formatDate(attendee.purchaseDate)}
@@ -111,15 +108,12 @@ const AttendeeList = ({ data, total }: AttendeeListProps) => {
                     </div>
                     <div>
                       <div className="text-gray-500">Price Per Ticket</div>
-                      <div>Rp. {Number(attendee.price).toLocaleString()}</div>
+                      <div>{formatCurrency(attendee.price)}</div>
                     </div>
                     <div>
                       <div className="text-gray-500">Total Price</div>
                       <div>
-                        Rp.
-                        {(
-                          Number(attendee.price) * attendee.quantity
-                        ).toLocaleString()}
+                        {formatCurrency(attendee.price * attendee.quantity)}
                       </div>
                     </div>
                     <div>

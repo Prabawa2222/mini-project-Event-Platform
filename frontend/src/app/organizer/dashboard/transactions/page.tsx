@@ -151,82 +151,118 @@ const TransactionsOrganizerPage = () => {
               <CardTitle>All Transactions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-muted/50">
-                    <tr className="border-b">
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        ID
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Customer
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Event
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Ticket Type
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Quantity
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Total Price
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Status
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactions &&
-                      transactions.map((transaction) => (
-                        <tr key={transaction.id} className="border-b">
-                          <td className="p-4 md:p-4">#{transaction.id}</td>
-                          <td className="p-4 md:p-4">
-                            {transaction.user.name}
+              <div className="overflow-auto rounded-md border">
+                <div className="min-w-full align-middle">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-3 py-4 text-left text-xs font-medium sm:px-4"
+                        >
+                          ID
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-4 text-left text-xs font-medium sm:px-4"
+                        >
+                          Customer
+                        </th>
+                        <th
+                          scope="col"
+                          className="hidden px-3 py-4 text-left text-xs font-medium sm:table-cell sm:px-4"
+                        >
+                          Event
+                        </th>
+                        <th
+                          scope="col"
+                          className="hidden px-3 py-4 text-left text-xs font-medium sm:table-cell sm:px-4"
+                        >
+                          Type
+                        </th>
+                        <th
+                          scope="col"
+                          className="hidden px-3 py-4 text-left text-xs font-medium sm:table-cell sm:px-4"
+                        >
+                          Qty
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-4 text-left text-xs font-medium sm:px-4"
+                        >
+                          Price
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-4 text-left text-xs font-medium sm:px-4"
+                        >
+                          Status
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-4 text-left text-xs font-medium sm:px-4"
+                        >
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {transactions?.map((transaction) => (
+                        <tr key={transaction.id} className="hover:bg-gray-50">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm sm:px-4">
+                            #{transaction.id}
                           </td>
-                          <td className="p-4 md:p-4">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm sm:px-4">
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {transaction.user.name}
+                              </span>
+                              <span className="text-xs text-gray-500 sm:hidden">
+                                {transaction.event.name}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell sm:px-4">
                             {transaction.event.name}
                           </td>
-                          <td className="p-4 md:p-4">
+                          <td className="hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell sm:px-4">
                             {transaction.ticketType.name}
                           </td>
-                          <td className="p-4 md:p-4">{transaction.quantity}</td>
-                          <td className="p-4 md:p-4">
+                          <td className="hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell sm:px-4">
+                            {transaction.quantity}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm sm:px-4">
                             Rp {transaction.totalPrice.toLocaleString()}
                           </td>
-                          <td className="p-4">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm sm:px-4">
                             <Badge
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(
+                              className={`px-2 py-1 text-xs ${getStatusStyle(
                                 transaction.status
                               )}`}
                             >
                               {transaction.status?.replace(/_/g, " ")}
                             </Badge>
                           </td>
-                          <td className="p-4">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm sm:px-4">
                             <Button variant="outline" size="sm" asChild>
                               <Link
                                 href={`/organizer/dashboard/transactions/${transaction.id}`}
                               >
-                                View Details
+                                View
                               </Link>
                             </Button>
                           </td>
                         </tr>
                       ))}
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               <div className="mt-4">
                 <Pagination>
                   <PaginationContent>
-                    <PaginationItem>
+                    <PaginationItem className="hidden sm:inline-block">
                       <PaginationPrevious
                         onClick={() => handlePageChange(page - 1)}
                         className={
@@ -237,7 +273,6 @@ const TransactionsOrganizerPage = () => {
                       />
                     </PaginationItem>
 
-                    {/* First Page */}
                     <PaginationItem>
                       <PaginationLink
                         onClick={() => handlePageChange(1)}
@@ -247,14 +282,12 @@ const TransactionsOrganizerPage = () => {
                       </PaginationLink>
                     </PaginationItem>
 
-                    {/* Show ellipsis if there are many pages */}
                     {page > 3 && (
-                      <PaginationItem>
+                      <PaginationItem className="hidden sm:inline-block">
                         <PaginationEllipsis />
                       </PaginationItem>
                     )}
 
-                    {/* Current page and surrounding pages */}
                     {page > 2 && (
                       <PaginationItem>
                         <PaginationLink
@@ -289,15 +322,13 @@ const TransactionsOrganizerPage = () => {
                       </PaginationItem>
                     )}
 
-                    {/* Show ellipsis if there are many pages */}
                     {page <
                       Math.ceil((transactions?.length || 0) / limit) - 2 && (
-                      <PaginationItem>
+                      <PaginationItem className="hidden sm:inline-block">
                         <PaginationEllipsis />
                       </PaginationItem>
                     )}
 
-                    {/* Last Page */}
                     {Math.ceil((transactions?.length || 0) / limit) > 1 && (
                       <PaginationItem>
                         <PaginationLink
@@ -316,7 +347,7 @@ const TransactionsOrganizerPage = () => {
                       </PaginationItem>
                     )}
 
-                    <PaginationItem>
+                    <PaginationItem className="hidden sm:inline-block">
                       <PaginationNext
                         onClick={() => handlePageChange(page + 1)}
                         className={
@@ -339,165 +370,97 @@ const TransactionsOrganizerPage = () => {
               <CardTitle>Pending Transactions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-muted/50">
-                    <tr className="border-b">
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        ID
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Customer
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Event
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Ticket Type
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Quantity
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Total Price
-                      </th>
-                      <th className="h-12 px-4 text-left align-middle font-medium">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pendingTransactions &&
-                      pendingTransactions.data.map((transaction) => (
-                        <tr key={transaction.id} className="border-b">
-                          <td className="p-4">#{transaction.id}</td>
-                          <td className="p-4">{transaction.user.name}</td>
-                          <td className="p-4">{transaction.event.name}</td>
-                          <td className="p-4">{transaction.ticketType.name}</td>
-                          <td className="p-4">{transaction.quantity}</td>
-                          <td className="p-4">
+              <div className="overflow-auto rounded-md border">
+                <div className="min-w-full align-middle">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-3 py-4 text-left text-xs font-medium sm:px-4"
+                        >
+                          ID
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-4 text-left text-xs font-medium sm:px-4"
+                        >
+                          Customer
+                        </th>
+                        <th
+                          scope="col"
+                          className="hidden px-3 py-4 text-left text-xs font-medium sm:table-cell sm:px-4"
+                        >
+                          Event
+                        </th>
+                        <th
+                          scope="col"
+                          className="hidden px-3 py-4 text-left text-xs font-medium sm:table-cell sm:px-4"
+                        >
+                          Type
+                        </th>
+                        <th
+                          scope="col"
+                          className="hidden px-3 py-4 text-left text-xs font-medium sm:table-cell sm:px-4"
+                        >
+                          Qty
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-4 text-left text-xs font-medium sm:px-4"
+                        >
+                          Price
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-4 text-left text-xs font-medium sm:px-4"
+                        >
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {pendingTransactions?.data.map((transaction) => (
+                        <tr key={transaction.id} className="hover:bg-gray-50">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm sm:px-4">
+                            #{transaction.id}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm sm:px-4">
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {transaction.user.name}
+                              </span>
+                              <span className="text-xs text-gray-500 sm:hidden">
+                                {transaction.event.name}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell sm:px-4">
+                            {transaction.event.name}
+                          </td>
+                          <td className="hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell sm:px-4">
+                            {transaction.ticketType.name}
+                          </td>
+                          <td className="hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell sm:px-4">
+                            {transaction.quantity}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm sm:px-4">
                             Rp {transaction.totalPrice.toLocaleString()}
                           </td>
-                          <td className="p-4">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm sm:px-4">
                             <Button variant="outline" size="sm" asChild>
                               <Link
                                 href={`/organizer/dashboard/transactions/${transaction.id}`}
                               >
-                                View Details
+                                View
                               </Link>
                             </Button>
                           </td>
                         </tr>
                       ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="mt-4">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => handlePageChange(page - 1)}
-                        className={
-                          page === 1
-                            ? "pointer-events-none opacity-50"
-                            : "cursor-pointer"
-                        }
-                      />
-                    </PaginationItem>
-
-                    {/* First Page */}
-                    <PaginationItem>
-                      <PaginationLink
-                        onClick={() => handlePageChange(1)}
-                        isActive={page === 1}
-                      >
-                        1
-                      </PaginationLink>
-                    </PaginationItem>
-
-                    {/* Show ellipsis if there are many pages */}
-                    {page > 3 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
-
-                    {/* Current page and surrounding pages */}
-                    {page > 2 && (
-                      <PaginationItem>
-                        <PaginationLink
-                          onClick={() => handlePageChange(page - 1)}
-                        >
-                          {page - 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )}
-
-                    {page !== 1 &&
-                      page !==
-                        Math.ceil((transactions?.length || 0) / limit) && (
-                        <PaginationItem>
-                          <PaginationLink
-                            onClick={() => handlePageChange(page)}
-                            isActive={true}
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      )}
-
-                    {page <
-                      Math.ceil((transactions?.length || 0) / limit) - 1 && (
-                      <PaginationItem>
-                        <PaginationLink
-                          onClick={() => handlePageChange(page + 1)}
-                        >
-                          {page + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )}
-
-                    {/* Show ellipsis if there are many pages */}
-                    {page <
-                      Math.ceil((transactions?.length || 0) / limit) - 2 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
-
-                    {/* Last Page */}
-                    {Math.ceil((transactions?.length || 0) / limit) > 1 && (
-                      <PaginationItem>
-                        <PaginationLink
-                          onClick={() =>
-                            handlePageChange(
-                              Math.ceil((transactions?.length || 0) / limit)
-                            )
-                          }
-                          isActive={
-                            page ===
-                            Math.ceil((transactions?.length || 0) / limit)
-                          }
-                        >
-                          {Math.ceil((transactions?.length || 0) / limit)}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )}
-
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() => handlePageChange(page + 1)}
-                        className={
-                          !transactions || transactions.length < limit
-                            ? "pointer-events-none opacity-50"
-                            : "cursor-pointer"
-                        }
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </CardContent>
           </Card>

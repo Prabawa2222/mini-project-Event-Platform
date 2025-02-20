@@ -8,10 +8,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { eventService } from "@/utils/api/organizer/events";
-import { EventPreview } from "@/types/event";
-import { useQuery } from "@tanstack/react-query";
-import React from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import React, { useState } from "react";
 
 interface EventTableProps {
   events: {
@@ -37,7 +45,15 @@ const EventTable = ({
   onDelete,
   onView,
 }: EventTableProps) => {
-  //if (isLoading) return <div>Loading....</div>;
+  const [eventToDelete, setEventToDelete] = useState<any>(null);
+
+  const handleDelete = () => {
+    if (eventToDelete && onDelete) {
+      onDelete(eventToDelete);
+      setEventToDelete(null);
+    }
+  };
+  if (isLoading) return <div>Loading....</div>;
 
   return (
     <div className="overflow-x-auto">
@@ -103,28 +119,38 @@ const EventTable = ({
                   >
                     View
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onEdit && onEdit(event)}
-                    disabled={Boolean(event.deleteAt)}
-                    className={`whitespace-nowrap ${
-                      event.deleteAt ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => onDelete && onDelete(event)}
-                    disabled={Boolean(event.deleteAt)}
-                    className={`whitespace-nowrap ${
-                      event.deleteAt ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    Delete
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        disabled={Boolean(event.deleteAt)}
+                        className={`px-3 py-1 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 ${
+                          event.deleteAt ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                        onClick={() => setEventToDelete(event)}
+                      >
+                        Delete
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Event</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{event.title}"? This
+                          action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel
+                          onClick={() => setEventToDelete(null)}
+                        >
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </TableCell>
             </TableRow>

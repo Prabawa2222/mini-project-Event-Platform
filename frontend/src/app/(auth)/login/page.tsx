@@ -3,8 +3,8 @@
 import { useFormik } from "formik";
 import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import * as Yup from "yup";
 
 const validationSchema = Yup.object({
@@ -15,7 +15,14 @@ const validationSchema = Yup.object({
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (searchParams.get("error")) {
+      setError(decodeURIComponent(searchParams.get("error")!));
+    }
+  }, [searchParams]);
 
   const handleSuccessfulLogin = async () => {
     try {
@@ -49,22 +56,18 @@ export default function LoginPage() {
           redirect: false,
         });
 
-        console.log("Sign in result:", result); // Debug log
-
         if (result?.error) {
           setError(result.error);
           return;
         }
 
         if (result?.ok) {
-          // Add a small delay to ensure session is updated
           setTimeout(async () => {
             await handleSuccessfulLogin();
           }, 2000);
         }
       } catch (error) {
-        console.error("Login error:", error);
-        setError("An error occurred during sign in");
+        setError("An unexpected error occurred. Please try again later.");
       } finally {
         setSubmitting(false);
       }
@@ -82,7 +85,26 @@ export default function LoginPage() {
 
         <form className="mt-8 space-y-6" onSubmit={formik.handleSubmit}>
           {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
+            <div className="rounded-md bg-red-50 p-4 mb-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-red-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                </div>
+              </div>
+            </div>
           )}
 
           <div className="rounded-md shadow-sm space-y-5">

@@ -22,7 +22,7 @@ import {
   TagIcon,
   TicketIcon,
 } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { EventData } from "@/types/event";
 
@@ -139,7 +139,7 @@ const EventDetailsPage = () => {
                         </div>
                         <div className="text-sm space-y-1">
                           <div className="text-green-600 font-medium">
-                            ${ticket.price}
+                            {formatCurrency(ticket.price)}
                           </div>
                           <div className="text-gray-600">
                             {ticket.quantity} available

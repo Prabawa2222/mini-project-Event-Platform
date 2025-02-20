@@ -82,7 +82,9 @@ export class UserService {
           userId: referrerUser.id,
           points: 10000,
           type: "REFERRAL",
-          expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+          // 1 menit abisnyta
+          expiresAt: new Date(Date.now() + 1 * 60 * 1000),
+          //expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
           // 3 bulan abisnya
         },
       });
@@ -117,16 +119,18 @@ export class UserService {
   async loginUser(
     email: string,
     password: string
-  ): Promise<{
-    token: string;
-    user: UserResponse;
-  }> {
+  ): Promise<{ token: string; user: UserResponse }> {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
 
-    if (!user || !(await bycrypt.compare(password, user.password))) {
-      throw new Error("Invalid credentials");
+    if (!user) {
+      throw new Error("No account found with this email address");
+    }
+
+    const isValidPassword = await bycrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      throw new Error("Invalid password");
     }
 
     const token = this.generateToken(user.id, user.role);
