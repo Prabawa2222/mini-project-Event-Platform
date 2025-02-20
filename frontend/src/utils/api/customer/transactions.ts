@@ -1,15 +1,23 @@
+import { getSession } from "next-auth/react";
+
 import {
   TransactionDetails,
   TransactionPreview,
   UploadPaymentProofDto,
   UserTransactionPreview,
 } from "@/types/transaction";
+import { fetchWithAuth } from "../auth";
 
 export const transactionService = {
   async uploadPaymentProof(
     transactionId: number,
     data: UploadPaymentProofDto
   ): Promise<TransactionDetails> {
+    const session = await getSession();
+    if (!session?.user?.accessToken) {
+      throw new Error("No authentication token available");
+    }
+
     const formData = new FormData();
 
     if (data.paymentProof) {
@@ -20,6 +28,9 @@ export const transactionService = {
       `${process.env.NEXT_PUBLIC_API}/api/transaction/${transactionId}/payment-proof`,
       {
         method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${session.user.accessToken}`,
+        },
         body: formData,
       }
     );
@@ -35,7 +46,6 @@ export const transactionService = {
     page: number = 1,
     limit: number = 10
   ): Promise<UserTransactionPreview> {
-    // Note: Return type is array now
     try {
       console.log(
         "Fetching transactions for userId:",
@@ -46,23 +56,12 @@ export const transactionService = {
         limit
       );
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API}/api/transaction/user/${userId}?page=${page}&limit=${limit}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      const data = await fetchWithAuth(
+        `${process.env.NEXT_PUBLIC_API}/api/transaction/user/${userId}?page=${page}&limit=${limit}`
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch transactions");
-      }
-
-      const data = await response.json();
       console.log("Received transactions:", data);
-      return data; // Return the array directly
+      return data;
     } catch (error) {
       console.error("Error fetching transactions:", error);
       throw error;

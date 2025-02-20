@@ -30,10 +30,7 @@ export const authOptions: AuthOptions = {
 
           if (data.user) {
             return {
-              id: data.user.id,
-              email: data.user.email,
-              name: data.user.name,
-              role: data.user.role,
+              ...data.user,
               accessToken: data.token,
             };
           }
@@ -51,17 +48,25 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
+        return {
+          ...token,
+          id: user.id,
+          role: user.role,
+          accessToken: user.accessToken,
+        };
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-      }
-      return session;
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: token.id as string,
+          role: token.role as string,
+          accessToken: token.accessToken as string,
+        },
+      };
     },
   },
   pages: {

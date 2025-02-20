@@ -29,8 +29,8 @@ interface EventTableProps {
     date: string;
     location: string;
     category: string;
-    capacity: number;
-    deleteAt?: string | null;
+    availableSeats: number;
+    deletedAt?: string | null;
   }[];
   isLoading: boolean;
   onView?: (event: any) => void;
@@ -41,7 +41,6 @@ interface EventTableProps {
 const EventTable = ({
   events,
   isLoading,
-  onEdit,
   onDelete,
   onView,
 }: EventTableProps) => {
@@ -82,7 +81,6 @@ const EventTable = ({
                     <div>{new Date(event.date).toLocaleDateString()}</div>
                     <div>{event.location}</div>
                     <div>{event.category}</div>
-                    <div>Seats: {event.capacity}</div>
                   </div>
                 </div>
               </TableCell>
@@ -96,10 +94,10 @@ const EventTable = ({
                 {event.category}
               </TableCell>
               <TableCell className="hidden md:table-cell">
-                {event.capacity}
+                {event.availableSeats}
               </TableCell>
               <TableCell>
-                {event.deleteAt ? (
+                {event.deletedAt ? (
                   <Badge variant="destructive" className="whitespace-nowrap">
                     Deleted
                   </Badge>
@@ -122,9 +120,9 @@ const EventTable = ({
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <button
-                        disabled={Boolean(event.deleteAt)}
+                        disabled={Boolean(event.deletedAt)}
                         className={`px-3 py-1 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 ${
-                          event.deleteAt ? "opacity-50 cursor-not-allowed" : ""
+                          event.deletedAt ? "opacity-50 cursor-not-allowed" : ""
                         }`}
                         onClick={() => setEventToDelete(event)}
                       >

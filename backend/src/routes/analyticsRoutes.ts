@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { AnalyticsController } from "../controllers/analyticsController";
+import { authenticate } from "../middleware/authMiddleware";
 
 const analyticsController = new AnalyticsController();
 const router = Router();
@@ -8,6 +9,7 @@ const router = Router();
 
 router.get(
   "/organizer/:organizerId",
+  authenticate,
   analyticsController.getOrganizerDashboardStats
 );
 

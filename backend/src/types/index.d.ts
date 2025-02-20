@@ -1,4 +1,4 @@
-import { EventCategory } from "@prisma/client";
+import { EventCategory, UserRole } from "@prisma/client";
 import { Request } from "express";
 
 declare global {
@@ -17,6 +17,7 @@ export interface CreateUserDto {
   password: string;
   name: string;
   referralCode?: string;
+  role: UserRole;
 }
 
 export interface ForgotPasswordDto {

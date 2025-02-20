@@ -71,7 +71,7 @@ export class UserService {
         name: userData.name,
         referralCode,
         referredBy: userData.referralCode,
-        role: UserRole.CUSTOMER,
+        role: userData.role as UserRole,
       },
     });
 

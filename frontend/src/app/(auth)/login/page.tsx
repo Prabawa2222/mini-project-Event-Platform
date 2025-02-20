@@ -34,7 +34,7 @@ export default function LoginPage() {
       if (sessionData?.user?.role?.toUpperCase() === "ORGANIZER") {
         window.location.href = "/organizer/dashboard";
       } else {
-        window.location.href = "/";
+        window.location.href = "/customer/profile";
       }
     } catch (error) {
       console.error("Error during login redirect:", error);

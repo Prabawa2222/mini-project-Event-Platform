@@ -256,8 +256,12 @@ export class EventService {
         startDate: true,
         location: true,
         category: true,
-        availableSeats: true,
         deletedAt: true,
+        ticketTypes: {
+          select: {
+            quantity: true,
+          },
+        },
       },
     });
 
@@ -268,11 +272,13 @@ export class EventService {
       date: event.startDate.toISOString(),
       location: event.location,
       category: event.category,
-      capacity: event.availableSeats,
-      deleteAt: event.deletedAt,
+      availableSeats: event.ticketTypes.reduce(
+        (sum, ticket) => sum + ticket.quantity,
+        0
+      ),
+      deletedAt: event.deletedAt,
     }));
   }
-
   // Search only for organizer
   async searchOrganizerEvents(
     organizerId: number,
@@ -304,7 +310,12 @@ export class EventService {
         startDate: true,
         location: true,
         category: true,
-        availableSeats: true,
+        deletedAt: true,
+        ticketTypes: {
+          select: {
+            quantity: true,
+          },
+        },
       },
       orderBy: {
         startDate: "desc",
@@ -318,7 +329,10 @@ export class EventService {
       date: event.startDate.toISOString(),
       location: event.location,
       category: event.category,
-      capacity: event.availableSeats,
+      availableSeats: event.ticketTypes.reduce(
+        (sum, ticket) => sum + ticket.quantity,
+        0
+      ),
     }));
   }
 

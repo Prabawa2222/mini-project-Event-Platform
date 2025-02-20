@@ -6,35 +6,40 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/(auth)/layout": [
+    "/organizer/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(auth)/layout.js"
+      "static/chunks/app/organizer/layout.js"
     ],
-    "/(auth)/login/page": [
+    "/organizer/dashboard/events/[slug]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(auth)/login/page.js"
+      "static/chunks/app/organizer/dashboard/events/[slug]/page.js"
     ],
     "/api/auth/[...nextauth]/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/auth/[...nextauth]/route.js"
     ],
-    "/organizer/layout": [
+    "/organizer/dashboard/events/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/organizer/layout.js"
+      "static/chunks/app/organizer/dashboard/events/page.js"
+    ],
+    "/organizer/dashboard/transactions/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/organizer/dashboard/transactions/page.js"
     ],
     "/organizer/dashboard/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/organizer/dashboard/page.js"
     ],
-    "/organizer/dashboard/events/page": [
+    "/organizer/dashboard/transactions/[transactionsId]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/organizer/dashboard/events/page.js"
+      "static/chunks/app/organizer/dashboard/transactions/[transactionsId]/page.js"
     ]
   }
 }

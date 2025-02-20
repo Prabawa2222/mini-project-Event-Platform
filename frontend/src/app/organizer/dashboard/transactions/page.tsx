@@ -24,6 +24,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import TransactionsDashboardSkeleton from "@/components/ui/TransactionsDashboardSkeleton";
 
 const TransactionsOrganizerPage = () => {
   const { organizerId } = useOrganizer();
@@ -61,18 +62,14 @@ const TransactionsOrganizerPage = () => {
     enabled: !!organizerId,
   });
 
-  // console.log("All Transactions data:", transactions);
-  // console.log("Pending Transactions data:", pendingTransactions);
+  console.log("All Transactions data:", transactions);
+  console.log("Pending Transactions data:", pendingTransactions);
 
   const isLoading =
     isLoadingTransactions || isLoadingPending || isLoadingSummary;
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <TransactionsDashboardSkeleton />;
   }
 
   const handlePageChange = (newPage: number) => {
@@ -436,10 +433,10 @@ const TransactionsOrganizerPage = () => {
                             </div>
                           </td>
                           <td className="hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell sm:px-4">
-                            {transaction.event.name}
+                            {transaction.event}
                           </td>
                           <td className="hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell sm:px-4">
-                            {transaction.ticketType.name}
+                            {transaction.ticketType}
                           </td>
                           <td className="hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell sm:px-4">
                             {transaction.quantity}

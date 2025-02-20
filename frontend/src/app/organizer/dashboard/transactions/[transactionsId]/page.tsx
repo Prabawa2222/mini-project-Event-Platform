@@ -50,7 +50,7 @@ const TransactionsIdOrganizerPage = () => {
       return {
         ...data,
         coupon: data.coupon ? data.coupon.code : null,
-        promotion: data.promotion ? data.promotion.name : null,
+        promotion: data.promotion ? data.promotion : null,
       } as TransactionPreview;
     },
     enabled: !!transactionId && !isNaN(transactionId),
@@ -89,7 +89,11 @@ const TransactionsIdOrganizerPage = () => {
         organizerId as string,
         rejectionReason
       ),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Handle email preview URL just like in approveMutation
+      setPreviewUrl(data.emailPreviewUrl ?? null);
+      console.log("previewUrl", previewUrl);
+
       queryClient.invalidateQueries({
         queryKey: ["transaction", transactionId],
       });
@@ -158,7 +162,7 @@ const TransactionsIdOrganizerPage = () => {
             <CardContent className="p-4 space-y-3">
               <div>
                 <strong>Name:</strong>
-                <p className="font-medium mt-1">{transaction?.user.name}</p>
+                <p className="font-medium mt-1">{transaction?.user}</p>
               </div>
               <div>
                 <strong>Coupon:</strong>
@@ -169,7 +173,7 @@ const TransactionsIdOrganizerPage = () => {
               <div>
                 <strong>Promotion:</strong>
                 <p className="font-medium mt-1">
-                  {transaction?.promotion || "N/A"}
+                  {transaction?.promotion?.code || "N/A"}
                 </p>
               </div>
             </CardContent>
@@ -183,13 +187,11 @@ const TransactionsIdOrganizerPage = () => {
             <CardContent className="p-4 space-y-3">
               <div>
                 <strong>Event:</strong>
-                <p className="font-medium mt-1">{transaction?.event.name}</p>
+                <p className="font-medium mt-1">{transaction?.event}</p>
               </div>
               <div>
                 <strong>Ticket Type:</strong>
-                <p className="font-medium mt-1">
-                  {transaction?.ticketType.name}
-                </p>
+                <p className="font-medium mt-1">{transaction?.ticketType}</p>
               </div>
               <div>
                 <strong>Quantity:</strong>

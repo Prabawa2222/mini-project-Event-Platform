@@ -614,7 +614,11 @@ export class TransactionService {
     );
   }
 
-  async rejectTransaction(transactionId: number, organizerId: number) {
+  async rejectTransaction(
+    transactionId: number,
+    organizerId: number,
+    rejectionReason: string
+  ) {
     return await this.prisma.$transaction(
       async (prisma) => {
         const transaction = await prisma.transaction.findUnique({
@@ -623,6 +627,8 @@ export class TransactionService {
             user: true,
             event: true,
             ticketType: true,
+            coupon: true,
+            promotion: true,
           },
         });
 
@@ -634,6 +640,62 @@ export class TransactionService {
           throw new Error("Unauthorized to reject this transaction");
         }
 
+        // 1. Return points if any were used
+        if (transaction.pointsUsed > 0) {
+          await prisma.user.update({
+            where: { id: transaction.userId },
+            data: {
+              points: {
+                increment: transaction.pointsUsed,
+              },
+            },
+          });
+
+          // Record points return in history
+          await prisma.pointsHistory.create({
+            data: {
+              userId: transaction.userId,
+              points: transaction.pointsUsed,
+              type: "USED",
+              expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year expiry
+            },
+          });
+        }
+
+        // 2. Return coupon if used
+        if (transaction.couponId) {
+          await prisma.coupon.update({
+            where: { id: transaction.couponId },
+            data: {
+              isUsed: false,
+              usedAt: null,
+            },
+          });
+        }
+
+        // 3. Return promotion availability if used
+        if (transaction.promotionId) {
+          await prisma.promotion.update({
+            where: { id: transaction.promotionId },
+            data: {
+              currentUses: {
+                decrement: 1,
+              },
+            },
+          });
+        }
+
+        // 4. Restore ticket availability
+        await prisma.ticketType.update({
+          where: { id: transaction.ticketTypeId },
+          data: {
+            quantity: {
+              increment: transaction.quantity,
+            },
+          },
+        });
+
+        // 5. Update transaction status
         const updatedTransaction = await prisma.transaction.update({
           where: { id: transactionId },
           data: {
@@ -654,7 +716,8 @@ export class TransactionService {
               quantity: transaction.quantity,
               totalPrice: transaction.totalPrice,
               previewUrl,
-            }
+            },
+            rejectionReason
           );
 
           console.log("Email sent successfully:", info);
@@ -667,9 +730,10 @@ export class TransactionService {
 
           return {
             success: true,
-            message: "Transaction rejected successfully",
+            message:
+              "Transaction rejected successfully. Points, coupons, and seats have been restored.",
             previewUrl,
-            emailPreviewUrl, // Include preview URL in response
+            emailPreviewUrl,
             transaction: updatedTransaction,
           };
         } catch (emailError) {

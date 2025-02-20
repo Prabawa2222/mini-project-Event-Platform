@@ -221,7 +221,7 @@ export class TransactionController {
 
   async rejectTransaction(req: Request, res: Response): Promise<void> {
     const transactionId = parseInt(req.params.id);
-    const organizerId = parseInt(req.body.organizerId); // Or get from auth token
+    const organizerId = parseInt(req.body.organizerId);
     const { rejectionReason } = req.body;
 
     if (!rejectionReason) {
@@ -232,7 +232,8 @@ export class TransactionController {
     try {
       const transaction = await this.transactionService.rejectTransaction(
         transactionId,
-        organizerId
+        organizerId,
+        rejectionReason
       );
       res.send(transaction);
     } catch (err: any) {

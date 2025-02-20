@@ -34,11 +34,20 @@ export enum TransactionStatus {
 
 export interface TransactionPreview {
   id: number;
-  user: { name: string };
-  event: { name: string };
-  ticketType: { name: string };
+  user: string;
+  event: string;
+  ticketType: string;
   coupon: string;
-  promotion: string;
+  promotion: null | {
+    id: number;
+    eventId: number;
+    code: string;
+    currentUses: number;
+    discount: number;
+    maxUses: number;
+    startDate: string;
+    endDate: string;
+  };
   quantity: number;
   totalPrice: number;
   status: string;
@@ -55,7 +64,7 @@ export interface TransactionDetails
     discount: number;
   } | null;
   promotion?: {
-    name: string;
+    code: string;
     discount: number;
   } | null;
   expiresAt: Date;

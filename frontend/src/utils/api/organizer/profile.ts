@@ -1,14 +1,10 @@
+import { getSession } from "next-auth/react";
+import { fetchWithAuth } from "../auth";
+
 export const fetchProfile = async (userId: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API}/api/users/profile?userId=${userId}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
+  const result = await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API}/api/users/profile?userId=${userId}`
   );
-  const result = await response.json();
   console.log("API Response:", result);
 
   if (!result.success) {
@@ -19,6 +15,11 @@ export const fetchProfile = async (userId: string) => {
 };
 
 export const updateProfile = async (userId: string, formData: FormData) => {
+  const session = await getSession();
+  if (!session?.user?.accessToken) {
+    throw new Error("No authentication token available");
+  }
+
   const requestFormData = new FormData();
 
   const profileData = {
@@ -35,6 +36,9 @@ export const updateProfile = async (userId: string, formData: FormData) => {
     `${process.env.NEXT_PUBLIC_API}/api/users/profile/${userId}`,
     {
       method: "PUT",
+      headers: {
+        Authorization: `Bearer ${session.user.accessToken}`,
+      },
       body: requestFormData,
     }
   );
@@ -51,7 +55,7 @@ export const changePassword = async (
   userId: string,
   data: { oldPassword: string; newPassword: string }
 ) => {
-  const response = await fetch(
+  return fetchWithAuth(
     `${process.env.NEXT_PUBLIC_API}/api/users/password/${userId}`,
     {
       method: "POST",
@@ -61,11 +65,4 @@ export const changePassword = async (
       body: JSON.stringify(data),
     }
   );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to change password");
-  }
-
-  return response.json();
 };

@@ -20,10 +20,12 @@ import { useOrganizer } from "@/context/organizer/OrganizerContext";
 import { useDebounce } from "use-debounce";
 import { toast } from "@/hooks/use-toast";
 import { EVENT_CATEGORIES } from "@/lib/utils";
+import { EventTableSkeleton } from "@/components/ui/eventSkeleton";
 
 const EventDashboardOrganizerPage = () => {
   const router = useRouter();
   const { organizerId } = useOrganizer();
+  console.log("Current organizerId:", organizerId);
   const queryClient = useQueryClient();
   const [searchTerm, setsearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -34,19 +36,41 @@ const EventDashboardOrganizerPage = () => {
   const { data: events, isLoading } = useQuery({
     queryKey: ["events", organizerId, debouncedSearchTerm, selectedCategory],
     queryFn: () => {
-      if (!organizerId) return [];
+      console.log("QueryFn executing with:", {
+        organizerId,
+        debouncedSearchTerm,
+        selectedCategory,
+      });
 
-      if (!debouncedSearchTerm && !selectedCategory) {
-        return eventService.getAllEventsByOrganizerId(organizerId as string);
+      if (!organizerId) {
+        console.log("No organizerId provided, returning empty array");
+        return [];
       }
 
+      if (!debouncedSearchTerm && !selectedCategory) {
+        console.log(
+          "Fetching all events for organizerId:",
+          Number(organizerId)
+        );
+        return eventService.getAllEventsByOrganizerId(Number(organizerId));
+      }
+
+      console.log("Searching events with:", {
+        organizerId,
+        searchTerm: debouncedSearchTerm || undefined,
+        category: selectedCategory || undefined,
+      });
+
       return eventService.searchOrganizerEvents(
-        organizerId as string,
+        organizerId,
         debouncedSearchTerm || undefined,
         selectedCategory || undefined
       );
     },
+    retry: 1,
+    staleTime: 30000,
   });
+  console.log("Events data received:", events);
 
   const deleteMutation = useMutation({
     mutationFn: (slug: string) => eventService.deleteEvent(slug),
@@ -126,13 +150,26 @@ const EventDashboardOrganizerPage = () => {
               </SelectContent>
             </Select>
           </form>
-          <EventTable
-            events={events}
-            isLoading={isLoading}
-            onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
+          {isLoading ? (
+            <EventTableSkeleton />
+          ) : !events || events.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <p className="text-gray-500 text-lg">No events found</p>
+              <p className="text-gray-400 text-sm mt-2">
+                {searchTerm || selectedCategory
+                  ? "Try adjusting your search or filters"
+                  : "Create your first event to get started"}
+              </p>
+            </div>
+          ) : (
+            <EventTable
+              events={events}
+              isLoading={isLoading}
+              onView={handleView}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

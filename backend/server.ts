@@ -14,7 +14,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.BACKEND_PORT;
 
-//app.use(authenticate as express.RequestHandler);
+// app.use(authenticate as express.RequestHandler);
 
 initializeCronJobs();
 

@@ -10,15 +10,16 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authenticate = async (
+export const authenticate = (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-) => {
+): void => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
-      return res.status(401).json({ message: "Authentication required" });
+      res.status(401).json({ message: "Authentication required" });
+      return;
     }
 
     const decoded = jwt.verify(token, JWT_SECRET) as {
@@ -26,18 +27,19 @@ export const authenticate = async (
       role: UserRole;
     };
 
-    //req.user = decoded;
-    req.user = { id: 1, role: "ORGANIZER" };
+    req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Invalide token" });
+    res.status(401).json({ message: "Invalid token" });
+    return;
   }
 };
 
 export const authorize = (roles: UserRole[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ message: "Forbidden" });
+      res.status(403).json({ message: "Forbidden" });
+      return;
     }
     next();
   };

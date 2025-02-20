@@ -17,6 +17,7 @@ import { useUser } from "@/context/user/UserContext";
 import { formatDate, getStatusStyle } from "@/lib/utils";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { FileX } from "lucide-react";
 
 interface Transaction {
   id: number;
@@ -35,6 +36,16 @@ interface TransactionResponse {
     totalPages: number;
   };
 }
+
+const EmptyState = () => (
+  <div className="flex flex-col items-center justify-center py-12 text-center">
+    <FileX className="w-12 h-12 text-gray-400 mb-4" />
+    <h3 className="text-lg font-medium text-gray-900 mb-1">No Transactions</h3>
+    <p className="text-sm text-gray-500 mb-4">
+      You haven't made any transactions yet.
+    </p>
+  </div>
+);
 
 const CustomerTransactionsPage = () => {
   const { userId } = useUser();
@@ -58,58 +69,64 @@ const CustomerTransactionsPage = () => {
         <CardTitle>My Transactions</CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Event</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Total Price</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transactions?.data.map((transaction) => (
-              <TableRow key={transaction.id}>
-                <TableCell className="font-medium">
-                  {transaction.event}
-                </TableCell>
-                <TableCell>{formatDate(transaction.transactionDate)}</TableCell>
-                <TableCell>
-                  {new Intl.NumberFormat("id-ID", {
-                    style: "currency",
-                    currency: "IDR",
-                  }).format(transaction.totalPrice)}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(
-                      transaction.status
-                    )}`}
-                  >
-                    {transaction.status?.replace(/_/g, " ")}
-                  </Badge>
-                </TableCell>
-                <td className="p-4 space-x-2">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/events/${transaction.eventId}`}>
-                      View Event
-                    </Link>
-                  </Button>
-                  {transaction.status === "WAITING_FOR_PAYMENT" && (
-                    <Button variant="default" size="sm" asChild>
-                      <Link
-                        href={`/customer/transactions/${transaction.id}/upload-payment`}
-                      >
-                        Upload Payment
+        {transactions?.data.length < 1 ? (
+          <EmptyState />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Event</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Total Price</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {transactions?.data.map((transaction) => (
+                <TableRow key={transaction.id}>
+                  <TableCell className="font-medium">
+                    {transaction.event}
+                  </TableCell>
+                  <TableCell>
+                    {formatDate(transaction.transactionDate)}
+                  </TableCell>
+                  <TableCell>
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(transaction.totalPrice)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(
+                        transaction.status[0] || ""
+                      )}`}
+                    >
+                      {transaction.status[0]?.replace(/_/g, " ")}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="p-4 space-x-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/events/${transaction.eventId}`}>
+                        View Event
                       </Link>
                     </Button>
-                  )}
-                </td>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                    {transaction.status[0] === "WAITING_FOR_PAYMENT" && (
+                      <Button variant="default" size="sm" asChild>
+                        <Link
+                          href={`/customer/transactions/${transaction.id}/upload-payment`}
+                        >
+                          Upload Payment
+                        </Link>
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );
