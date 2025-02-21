@@ -4,18 +4,30 @@ import jwt from "jsonwebtoken";
 import {
   ChangePasswordDto,
   CreateUserDto,
+  ForgotPasswordDto,
+  GetProfileOrganizerResponse,
+  GetProfileUserResponse,
+  ResetPasswordDto,
   UpdateProfileDto,
   UserResponse,
 } from "../types";
 import { PrismaClient, UserRole, CouponType, PointsType } from "@prisma/client";
 import crypto from "crypto";
 import { JWT_SECRET } from "../utils/jwt";
+import nodemailer from "nodemailer";
+import { initializeEmailTransporter } from "../config/mail.config";
 
 export class UserService {
   private prisma: PrismaClient;
+  private emailTransporter: any;
 
   constructor() {
     this.prisma = new PrismaClient();
+    this.initializeTransporter();
+  }
+
+  private async initializeTransporter() {
+    this.emailTransporter = await initializeEmailTransporter();
   }
 
   private generateReferralCode(): string {
@@ -132,6 +144,84 @@ export class UserService {
     };
   }
 
+  async getUserProfile(userId: number): Promise<any> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (user.role === UserRole.ORGANIZER) {
+      return await this.getOrganizerInfo(userId);
+    } else {
+      return await this.getCustomerInfo(userId);
+    }
+  }
+
+  private async getOrganizerInfo(
+    userId: number
+  ): Promise<GetProfileOrganizerResponse> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        events: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      profilePicture: user.profilePicture,
+    };
+  }
+
+  private async getCustomerInfo(
+    userId: number
+  ): Promise<GetProfileUserResponse> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        coupons: {
+          where: {
+            isUsed: false,
+            expiresAt: { gt: new Date() },
+          },
+        },
+        pointsHistory: {
+          where: { type: { not: PointsType.EXPIRED } },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const activeCoupons = user.coupons.map((coupon) => coupon.code).join(",");
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      referralCode: user.referralCode,
+      points: user.points,
+      profilePicture: user.profilePicture,
+      activeCoupons,
+    };
+  }
+
   async updateUserProfile(
     userId: number,
     data: UpdateProfileDto
@@ -194,5 +284,112 @@ export class UserService {
       data: { type: PointsType.EXPIRED },
     });
     console.log(`${expiredPoints.count} points records expired.`);
+  }
+
+  async forgotPassword(
+    data: ForgotPasswordDto
+  ): Promise<{ previewUrl?: string }> {
+    try {
+      console.log("Starting forgot password process for:", data.email);
+
+      const user = await this.prisma.user.findUnique({
+        where: { email: data.email },
+      });
+
+      if (!user) {
+        console.log("No user found with email:", data.email);
+        return {};
+      }
+
+      console.log("User found, generating reset token");
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+      console.log("Updating user with reset token");
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          resetToken: hashedToken,
+          resetTokenExpiry: new Date(Date.now() + 3600000),
+        },
+      });
+
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+      console.log("Reset URL generated:", resetUrl);
+
+      try {
+        console.log("Attempting to send email");
+        const info = await this.emailTransporter.sendMail({
+          from: `"${process.env.APP_NAME}" <${process.env.EMAIL_FROM}>`,
+          to: user.email,
+          subject: "Password Reset Request",
+          html: `
+            <h1>Password Reset Request</h1>
+            <p>You requested a password reset. Click the link below to reset your password:</p>
+            <a href="${resetUrl}">Reset Password</a>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, please ignore this email.</p>
+          `,
+        });
+
+        console.log("Email sent successfully");
+        console.log("Email info:", info);
+
+        if (process.env.NODE_ENV === "development") {
+          const previewUrl = nodemailer.getTestMessageUrl(info);
+          console.log("Preview URL for test email:", previewUrl);
+          return previewUrl ? { previewUrl } : {};
+        }
+
+        return {};
+      } catch (emailError) {
+        console.error("Failed to send email:", emailError);
+        // Rollback the reset token
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            resetToken: null,
+            resetTokenExpiry: null,
+          },
+        });
+        throw emailError;
+      }
+    } catch (error) {
+      console.error("Error in forgotPassword:", error);
+      throw error;
+    }
+  }
+
+  async resetPassword(data: ResetPasswordDto): Promise<void> {
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(data.token)
+      .digest("hex");
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        resetToken: hashedToken,
+        resetTokenExpiry: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!user) {
+      throw new Error("Invalid or expired reset token");
+    }
+
+    const hashedPassword = await bycrypt.hash(data.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null,
+      },
+    });
   }
 }

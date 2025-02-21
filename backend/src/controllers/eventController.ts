@@ -3,6 +3,7 @@ import { EventService } from "../services/eventService";
 import { CreateVoucherInput, SearchParams, UpdateEventDTO } from "../types";
 import { ImageService } from "../services/utilService";
 import multer from "multer";
+import { EventCategory } from "@prisma/client";
 
 export class EventController {
   private events = new EventService();
@@ -18,9 +19,12 @@ export class EventController {
       if (err) {
         return res.status(400).json({ error: err.message });
       }
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
 
       try {
-        const eventData = JSON.parse(req.body.data); // Pastikan parsing JSON benar
+        const eventData = JSON.parse(req.body.data);
         const event = await this.events.createEvent(
           eventData.organizerId,
           eventData,
@@ -53,10 +57,24 @@ export class EventController {
     }
   }
 
+  async getEventAttendees(req: Request, res: Response) {
+    try {
+      const { slug } = req.params;
+      const attendees = await this.events.getEventAttendees(slug);
+      res.json({
+        message: "Event attendees retrieved successfully",
+        data: attendees,
+        total: attendees.length,
+      });
+    } catch (err: any) {
+      res.status(404).json({ error: err.message });
+    }
+  }
+
   async getUpcomingEvents(req: Request, res: Response) {
     try {
       const events = await this.events.getUpcomingEvents();
-      res.json(events);
+      res.send(events);
     } catch (err: any) {
       res.status(404).json({ error: err.message });
     }
@@ -117,9 +135,29 @@ export class EventController {
     }
   }
 
+  async searchOrganizerEvents(req: Request, res: Response) {
+    try {
+      const organizerId = parseInt(req.params.organizerId);
+      const { name, category } = req.query;
+
+      const events = await this.events.searchOrganizerEvents(
+        organizerId,
+        name as string,
+        category as EventCategory
+      );
+
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({
+        message: "Error searching events",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
   async getOrganizerEvents(req: Request, res: Response) {
     try {
-      const organizerId = 1;
+      const organizerId = req.body.organizerId;
       const events = await this.events.getOrganizerEvents(organizerId);
       res.json(events);
     } catch (err: any) {
