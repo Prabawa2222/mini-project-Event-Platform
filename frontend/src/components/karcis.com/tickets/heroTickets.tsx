@@ -37,12 +37,12 @@ export default function HeroTickets() {
     fetchEvent();
   }, [slug]);
 
-  if (!event) return <p>Loading...</p>;
+  if (!event) return <p className="text-center py-10">Loading...</p>;
 
   return (
-    <div className="ml-[120px] flex gap-10">
-      {/* Gambar dengan ukuran tetap */}
-      <div className="w-[780px] h-[250px] relative">
+    <div className="flex flex-col md:flex-row gap-6 md:gap-10 md:ml-[120px] ml-4 mt-6 md:mt-0 items-center md:items-start">
+      {/* Gambar dengan ukuran responsif */}
+      <div className="w-full md:w-[780px] h-[250px] relative">
         <Image
           src={event.imageUrl || "/banner.png"}
           alt={event.name}
@@ -53,13 +53,13 @@ export default function HeroTickets() {
       </div>
 
       {/* Informasi Event */}
-      <div className="w-[370px] h-[220px] flex flex-col">
+      <div className="w-full md:w-[370px] h-auto flex flex-col text-center md:text-left">
         <h1 className="font-semibold text-2xl mb-4">{event.name}</h1>
-        <div className="flex items-center gap-4 mb-2 text-gray-600">
+        <div className="flex items-center justify-center md:justify-start gap-2 mb-2 text-gray-600">
           <FaMapMarkerAlt />
           <span>{event.location}</span>
         </div>
-        <div className="flex items-center gap-4 mb-2 text-gray-600">
+        <div className="flex items-center justify-center md:justify-start gap-2 mb-2 text-gray-600">
           <FaRegCalendarAlt />
           <span>
             {new Date(event.startDate).toLocaleDateString("id-ID", {
@@ -69,7 +69,7 @@ export default function HeroTickets() {
             })}
           </span>
         </div>
-        <p className="text-justify mt-3 text-gray-600">
+        <p className="text-justify mt-3 text-gray-600 px-2 md:px-0">
           {event.description.split(" ").slice(0, 30).join(" ")}
         </p>
       </div>

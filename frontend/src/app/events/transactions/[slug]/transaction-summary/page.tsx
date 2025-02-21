@@ -1,19 +1,30 @@
 "use client";
 
-import NavbarAfterLogin from "@/components/karcis.com/common/NavbarAfterLogin";
-import FinalDetailTransaction from "@/components/karcis.com/transactions/finalDetailTrasanction.component";
-import BackButton from "@/components/karcis.com/UI/buttonBack";
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react"; // Import useSession
+import Navbar from "@/components/karcis.com/common/Navbar";
+import FinalDetailTransaction from "@/components/karcis.com/transactions/finalDetailTrasanction.component";
+import BackButton from "@/components/karcis.com/UI/buttonBack";
 
 export default function TransactionSummary() {
+  const { data: session } = useSession(); // Ambil data session
+  const userId = session?.user?.id; // Ambil userId dari session
+
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const ticketsQuery = searchParams.get("tickets");
   const selectedTickets = ticketsQuery ? JSON.parse(ticketsQuery) : {};
   const { slug } = useParams();
 
-  const [eventData, setEventData] = useState({
+  const [eventData, setEventData] = useState<{
+    id: string;
+    name: string;
+    location: string;
+    startDate: string;
+    imageUrl: string;
+    ticketTypes: { id: any; name: string; price: number }[];
+  }>({
     id: "",
     name: "",
     location: "",
@@ -30,45 +41,60 @@ export default function TransactionSummary() {
   }, [slug]);
 
   const handlePayment = async () => {
-    console.log("Tickets Query:", ticketsQuery);
-    console.log("Parsed selectedTickets:", selectedTickets);
+    if (!userId) {
+      alert("User not logged in. Please log in first.");
+      return;
+    }
 
-    if (!selectedTickets.id) {
+    if (Object.keys(selectedTickets).length === 0) {
       alert("Invalid ticket selection. Please try again.");
       return;
     }
 
     setLoading(true);
     try {
-      console.log("Sending request with:", {
-        userId: 1, // Gantilah dengan user ID yang valid
-        eventId: eventData.id,
-        ticketTypeId: selectedTickets.id,
-        quantity: selectedTickets.quantity || 1,
-        pointsUsed: 0,
-        couponId: null,
-        promotionId: null,
-      });
+      const ticketEntries = Object.entries(selectedTickets)
+        .map(([name, quantity]) => {
+          const ticket = eventData.ticketTypes.find((t) => t.name === name);
+          return ticket ? { ticketTypeId: ticket.id, quantity } : null;
+        })
+        .filter(
+          (ticket): ticket is { ticketTypeId: any; quantity: unknown } =>
+            ticket !== null
+        );
 
-      const response = await fetch("http://localhost:8000/api/transaction", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: 1,
-          eventId: eventData.id,
-          ticketTypeId: selectedTickets.id,
-          quantity: selectedTickets.quantity || 1,
-          pointsUsed: 0,
-          couponId: null,
-          promotionId: null,
-        }),
-      });
+      if (ticketEntries.length === 0) {
+        alert("Invalid ticket selection. Please try again.");
+        return;
+      }
 
-      const result = await response.json();
-      if (response.ok) {
+      const transactions = ticketEntries.map(
+        async ({ ticketTypeId, quantity }) => {
+          return fetch("http://localhost:8000/api/transaction", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId,
+              eventId: eventData.id,
+              ticketTypeId,
+              quantity,
+              pointsUsed: 0,
+              couponId: null,
+              promotionId: null,
+            }),
+          });
+        }
+      );
+
+      const results = await Promise.all(transactions);
+      const responses = await Promise.all(results.map((res) => res.json()));
+
+      if (results.every((res) => res.ok)) {
         alert("Transaction successfully created!");
       } else {
-        alert(`Transaction failed: ${result.error}`);
+        alert(
+          `Transaction failed: ${responses.map((res) => res.error).join(", ")}`
+        );
       }
     } catch (error) {
       console.error("Transaction error:", error);
@@ -80,7 +106,7 @@ export default function TransactionSummary() {
 
   return (
     <div>
-      <NavbarAfterLogin />
+      <Navbar />
       <div className="w-[80%] min-h-screen flex flex-col items-center justify-center mx-auto mt-28 gap-10">
         <div className="w-[50%] h-[50px] flex items-center gap-10">
           <BackButton href="/events" />

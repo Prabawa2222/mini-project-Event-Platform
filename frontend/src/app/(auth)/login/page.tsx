@@ -2,6 +2,7 @@
 
 import { useFormik } from "formik";
 import { signIn, useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import * as Yup from "yup";
@@ -18,22 +19,16 @@ export default function LoginPage() {
 
   const handleSuccessfulLogin = async () => {
     try {
-      // Wait a bit for the session to be updated
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const response = await fetch("/api/auth/session");
       const sessionData = await response.json();
-      console.log("Session data:", sessionData);
 
-      // Check the role and redirect accordingly
       if (sessionData?.user?.role?.toUpperCase() === "ORGANIZER") {
-        console.log("Redirecting to organizer dashboard");
-        router.push("/organizer/dashboard");
+        window.location.href = "/organizer/dashboard";
       } else {
-        console.log("Redirecting to user dashboard");
-        router.push("/user/dashboard");
+        window.location.href = "/";
       }
-      router.refresh();
     } catch (error) {
       console.error("Error during login redirect:", error);
       setError("Error during redirect");
@@ -65,7 +60,7 @@ export default function LoginPage() {
           // Add a small delay to ensure session is updated
           setTimeout(async () => {
             await handleSuccessfulLogin();
-          }, 500);
+          }, 2000);
         }
       } catch (error) {
         console.error("Login error:", error);
@@ -138,13 +133,20 @@ export default function LoginPage() {
               {formik.isSubmitting ? "Signing in..." : "Sign in"}
             </button>
           </div>
-          <div className="text-sm text-center">
-            <a
+
+          <div className="text-sm text-cente flex flex-col items-center">
+            <Link
+              href={"/forgot-password"}
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
+              Forgot Password
+            </Link>
+            <Link
               href="/register"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
               Don't have an account? Register here
-            </a>
+            </Link>
           </div>
         </form>
       </div>

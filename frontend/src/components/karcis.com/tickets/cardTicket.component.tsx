@@ -21,25 +21,25 @@ const TicketCardTransaction: React.FC<{ ticket: TicketProps }> = ({
 
   return (
     <div
-      className={`bg-white shadow-lg rounded-xl p-6 text-center border border-[#4F4CEE] w-56 transition-all ${
+      className={`bg-white shadow-lg rounded-xl p-6 text-center border border-[#4F4CEE] w-full max-w-[220px] md:w-56 transition-all ${
         quantity > 0 ? "border-b-[6px] border-r-4 border-blue-500" : ""
       }`}
     >
-      <h2 className="text-xl font-semibold">{ticket.name}</h2>
-      <p className="text-lg font-bold mt-4">
+      <h2 className="text-lg md:text-xl font-semibold">{ticket.name}</h2>
+      <p className="text-base md:text-lg font-bold mt-3">
         Rp. {ticket.price.toLocaleString()}
       </p>
-      <div className="flex items-center justify-center gap-4 mt-4">
+      <div className="flex items-center justify-center gap-2 md:gap-4 mt-4">
         <button
           onClick={() => handleQuantityChange(Math.max(quantity - 1, 0))}
-          className="w-8 h-8 flex items-center justify-center border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-100"
+          className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-100"
         >
           <FiMinus />
         </button>
-        <span className="text-lg font-medium">{quantity}</span>
+        <span className="text-base md:text-lg font-medium">{quantity}</span>
         <button
           onClick={() => handleQuantityChange(quantity + 1)}
-          className="w-8 h-8 flex items-center justify-center border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-100"
+          className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-100"
         >
           <FiPlus />
         </button>

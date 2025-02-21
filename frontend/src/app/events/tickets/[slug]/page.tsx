@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import NavbarAfterLogin from "@/components/karcis.com/common/NavbarAfterLogin";
+import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import TicketCardTransaction from "@/components/karcis.com/tickets/cardTicket.component";
 import TicketSummary from "@/components/karcis.com/tickets/footerTicket";
 import HeroTickets from "@/components/karcis.com/tickets/heroTickets";
 import BackButton from "@/components/karcis.com/UI/buttonBack";
 import SortButton from "@/components/karcis.com/UI/buttonSortby";
+import Navbar from "@/components/karcis.com/common/Navbar";
 
 interface TicketOption {
   id: number;
@@ -15,7 +16,9 @@ interface TicketOption {
   price: number;
 }
 
-export default function getEventBySlug() {
+export default function getEventTicketBySlug() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const params = useParams();
   const slug = params?.slug as string;
 
@@ -26,6 +29,12 @@ export default function getEventBySlug() {
   const [sortedTickets, setSortedTickets] = useState<TicketOption[]>([]);
 
   useEffect(() => {
+    if (status === "loading") return;
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+
     if (!slug) return;
 
     fetch(`http://localhost:8000/api/events/${slug}`)
@@ -35,7 +44,15 @@ export default function getEventBySlug() {
         setSortedTickets(data.ticketTypes);
       })
       .catch((err) => console.error("Error fetching tickets:", err));
-  }, [slug]);
+  }, [slug, session, status, router]);
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  if (!session) {
+    return null;
+  }
 
   const handleQuantityChange = (name: string, quantity: number) => {
     setSelectedTickets((prev) => ({
@@ -71,24 +88,26 @@ export default function getEventBySlug() {
 
   return (
     <div>
-      <NavbarAfterLogin />
-      <div className="w-[80%] min-h-screen flex flex-col mx-auto mt-40 gap-10">
-        <div className="w-[30%] h-[50px] flex items-center gap-16">
+      <Navbar />
+      <div className="w-full md:w-[80%] min-h-screen flex flex-col mx-auto mt-40 gap-6 md:gap-10 px-4 md:px-0">
+        <div className="w-full md:w-[30%] h-[50px] flex flex-col md:flex-row items-center gap-4 md:gap-16">
           <BackButton href="/events" />
-          <span className="text-3xl font-semibold">Ticket Options</span>
+          <span className="text-2xl md:text-3xl font-semibold text-center md:text-left">
+            Ticket Options
+          </span>
         </div>
-        <div className="w-[1304px] h-[250px]">
+        <div className="w-full h-auto">
           <HeroTickets />
         </div>
-        <div className="border border-b-1 border-[#4F4CEE] border-opacity-20 mt-20">
+        <div className="border border-b-1 border-[#4F4CEE] border-opacity-20 mt-10 md:mt-20">
           <hr />
         </div>
-        <h1 className="flex justify-center text-2xl font-semibold">
+        <h1 className="flex justify-center text-xl md:text-2xl font-semibold">
           Tickets Type
         </h1>
 
-        <div className="w-full h-auto flex flex-col gap-10">
-          <div className="flex justify-end">
+        <div className="w-full h-auto flex flex-col gap-6 md:gap-10">
+          <div className="flex justify-center md:justify-end">
             <SortButton onSort={handleSort} />
           </div>
           <div className="w-full h-auto flex flex-wrap justify-center gap-6">
@@ -102,13 +121,12 @@ export default function getEventBySlug() {
         </div>
       </div>
 
-      {/* Kirim slug ke TicketSummary */}
       <TicketSummary
         totalQuantity={totalQuantity}
         totalPrice={totalPrice}
         selectedType={selectedTypes}
         eventSlug={slug}
-        selectedTickets={selectedTickets} // Tambahkan ini
+        selectedTickets={selectedTickets}
       />
     </div>
   );

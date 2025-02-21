@@ -10,10 +10,10 @@ interface EventInfoProps {
 
 export default function EventInfo({ event }: EventInfoProps) {
   return (
-    <div className="w-[1100px] h-[300px] mt-20">
+    <div className="w-full max-w-[1100px] h-auto mt-20 px-4">
       <h1 className="text-2xl font-semibold mb-9">Event Information</h1>
-      <div className="flex justify-between">
-        <div className="flex gap-5 bg-white shadow-lg p-5 rounded-lg border border-b-[6px] border-r-4 border-[#4F4CEE] hover:shadow-2xl hover:scale-105 transition-all duration-300">
+      <div className="flex flex-col md:flex-row justify-between gap-4">
+        <div className="flex gap-5 bg-white shadow-lg p-5 rounded-lg border border-b-[6px] border-r-4 border-[#4F4CEE] hover:shadow-2xl hover:scale-105 transition-all duration-300 w-full md:w-auto">
           <FaTicketAlt className="text-4xl" />
           <div className="flex flex-col gap-2">
             <h3 className="font-semibold text-lg">Ticket Available</h3>
@@ -22,14 +22,14 @@ export default function EventInfo({ event }: EventInfoProps) {
             </span>
           </div>
         </div>
-        <div className="flex gap-5 bg-white shadow-lg p-5 rounded-xl border border-b-[6px] border-r-4 border-[#4F4CEE] hover:shadow-2xl hover:scale-105 transition-all duration-300">
+        <div className="flex gap-5 bg-white shadow-lg p-5 rounded-lg border border-b-[6px] border-r-4 border-[#4F4CEE] hover:shadow-2xl hover:scale-105 transition-all duration-300 w-full md:w-auto">
           <FaTags className="text-4xl" />
           <div className="flex flex-col gap-2">
             <h3 className="font-semibold text-lg">Category</h3>
             <span className="text-md text-gray-600">{event.category}</span>
           </div>
         </div>
-        <div className="flex gap-5 bg-white shadow-lg p-5 rounded-xl border border-b-[6px] border-r-4 border-[#4F4CEE] hover:shadow-2xl hover:scale-105 transition-all duration-300">
+        <div className="flex gap-5 bg-white shadow-lg p-5 rounded-lg border border-b-[6px] border-r-4 border-[#4F4CEE] hover:shadow-2xl hover:scale-105 transition-all duration-300 w-full md:w-auto">
           <FaUsers className="text-4xl" />
           <div className="flex flex-col gap-2">
             <h3 className="font-semibold text-lg">Platform</h3>
@@ -38,9 +38,9 @@ export default function EventInfo({ event }: EventInfoProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 mt-20">
+      <div className="flex flex-col gap-3 mt-10 md:mt-20">
         <h2 className="text-2xl font-semibold">Description</h2>
-        <p className="text-justify text-lg/7 tracking-wide ">
+        <p className="text-justify text-lg/7 tracking-wide">
           {event.description}
         </p>
       </div>

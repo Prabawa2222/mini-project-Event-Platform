@@ -1,5 +1,3 @@
-// searchBarEvents.tsx
-
 import React, { useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import DatePickerComponent from "./datePicker";
@@ -16,7 +14,7 @@ const SearchBarEvents = ({ onSearch }: SearchBarEventsProps) => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState(""); // Local state for search input
+  const [query, setQuery] = useState("");
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -27,19 +25,19 @@ const SearchBarEvents = ({ onSearch }: SearchBarEventsProps) => {
   };
 
   return (
-    <div className="relative flex justify-center mt-20 z-10">
-      <div className="relative flex items-center w-[990px] h-[50px] px-5 border-2 border-black rounded-md bg-white shadow-md focus-within:shadow-[#4F4CEE] focus-within:shadow-2xl focus-within:border-[#4F4CEE]">
+    <div className="relative flex justify-center w-full">
+      <div className="relative flex items-center w-full max-w-[990px] h-[45px] md:h-[50px] px-4 md:px-5 border-2 border-black rounded-md bg-white shadow-md focus-within:border-[#4F4CEE]">
         {/* Search Input */}
         <input
           type="text"
           value={query}
           onChange={handleSearchChange}
-          placeholder="Search by events, name, location, and more"
-          className="flex-1 px-4 py-2 outline-none text-black placeholder-gray-400"
+          placeholder="Search events, name, location..."
+          className="flex-1 px-2 md:px-4 py-1 md:py-2 outline-none text-black placeholder-gray-400 text-sm md:text-base"
         />
 
         {/* Divider */}
-        <div className="w-[1px] h-[40px] bg-gray-300 mx-4"></div>
+        <div className="hidden md:block w-[1px] h-[40px] bg-gray-300 mx-4"></div>
 
         {/* Select Date */}
         <DatePickerComponent
@@ -53,8 +51,8 @@ const SearchBarEvents = ({ onSearch }: SearchBarEventsProps) => {
 
         {/* Search Button */}
         <button
-          className="ml-auto flex items-center gap-2 bg-[#4F4CEE] text-white px-4 py-2 rounded-md hover:bg-[#3d3bce]"
-          onClick={handleSearchSubmit} // Trigger search on button click
+          className="ml-auto flex items-center gap-2 bg-[#4F4CEE] text-white px-3 md:px-4 py-1 md:py-2 rounded-md hover:bg-[#3d3bce] text-sm md:text-base"
+          onClick={handleSearchSubmit}
         >
           <FaSearch />
         </button>

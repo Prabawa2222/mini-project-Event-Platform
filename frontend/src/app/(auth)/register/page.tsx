@@ -23,8 +23,6 @@ const RegisterSchema = Yup.object().shape({
   referralCode: Yup.string().optional(),
 });
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 const RegisterPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,19 +46,22 @@ const RegisterPage = () => {
     validationSchema: RegisterSchema,
     onSubmit: async (values) => {
       try {
-        const response = await fetch(`${API_URL}/api/users/register`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: values.name,
-            email: values.email,
-            password: values.password,
-            role: values.role,
-            referralCode: values.referralCode || undefined,
-          }),
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API}/api/users/register`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: values.name,
+              email: values.email,
+              password: values.password,
+              role: values.role,
+              referralCode: values.referralCode || undefined,
+            }),
+          }
+        );
 
         const data = await response.json();
 

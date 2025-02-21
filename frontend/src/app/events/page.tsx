@@ -38,12 +38,12 @@ export default function Events() {
 
   const handleSearch = (
     query: string,
-    start: Date | null,
-    end: Date | null
+    startDate: Date | null,
+    endDate: Date | null
   ) => {
     setSearchQuery(query);
-    setStartDate(start);
-    setEndDate(end);
+    setStartDate(startDate);
+    setEndDate(endDate);
   };
 
   return (

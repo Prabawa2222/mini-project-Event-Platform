@@ -17,10 +17,10 @@ const SortButton: React.FC<{ onSort: (order: string) => void }> = ({
   return (
     <button
       onClick={toggleSortOrder}
-      className="flex items-center gap-2 border-2 border-blue-500 text-blue-500 px-4 py-1 rounded-lg hover:bg-blue-100"
+      className="flex items-center gap-1 md:gap-2 border-2 border-blue-500 text-blue-500 px-3 py-1 text-sm md:px-4 md:py-1 md:text-base rounded-lg hover:bg-blue-100"
     >
       <FaSort />
-      <span className="font-medium">
+      <span className="font-medium text-center">
         Sort By Price ({sortOrder === "asc" ? "Low to High" : "High to Low"})
       </span>
     </button>
