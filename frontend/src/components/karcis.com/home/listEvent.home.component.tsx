@@ -29,7 +29,7 @@ export default function EventList({ title = "Upcoming Events" }) {
         const formattedEvents = data.map((event: any) => ({
           imageUrl: event.imageUrl || "/events-default.jpg",
           title: event.name,
-          date: new Date(event.startDate).toLocaleDateString("id-ID"),
+          date: new Date(event.startDate).toISOString().split("T")[0],
           location: event.location,
           price: event.price
             ? new Intl.NumberFormat("id-ID", {
